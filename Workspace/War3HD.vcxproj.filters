@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\GLProxy">
+      <UniqueIdentifier>{ba1a5529-8213-4e93-860b-a1f2a90234fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\War3">
+      <UniqueIdentifier>{f1e09345-e96f-4391-a561-5e08e0aaa414}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\External">
+      <UniqueIdentifier>{26a5d809-50be-4554-bd54-2862be132d58}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Source\War3\Image.cpp">
+      <Filter>Source Files\War3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\GLProxy\Opengl32.cpp">
+      <Filter>Source Files\GLProxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\War3\ShaderProgram.cpp">
+      <Filter>Source Files\War3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\War3\Framebuffer.cpp">
+      <Filter>Source Files\War3</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\War3\Image.hpp">
+      <Filter>Source Files\War3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\War3\Common.hpp">
+      <Filter>Source Files\War3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\GLProxy\GLEnums.hpp">
+      <Filter>Source Files\GLProxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\GLProxy\GLExtensions.hpp">
+      <Filter>Source Files\GLProxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\War3\ShaderProgram.hpp">
+      <Filter>Source Files\War3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\War3\Framebuffer.hpp">
+      <Filter>Source Files\War3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\External\stb\stb_image_write.h">
+      <Filter>Source Files\External</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Source\GLProxy\Opengl32.def">
+      <Filter>Source Files\GLProxy</Filter>
+    </None>
+  </ItemGroup>
+</Project>
