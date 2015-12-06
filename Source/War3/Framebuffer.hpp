@@ -91,7 +91,7 @@ private:
 
     // Render target attachments for the FBO. Each is a handle to
     // a GL texture. For an unused attachment, the slot is set to zero.
-    static constexpr int RTCount = int(RenderTarget::Count);
+    static constexpr int RTCount = static_cast<int>(RenderTarget::Count);
     std::array<UInt, RTCount> renderTargets;
 
     // True if the GL framebuffer validation succeeded.
@@ -113,8 +113,21 @@ public:
     FramebufferManager(const FramebufferManager &) = delete;
     FramebufferManager & operator = (const FramebufferManager &) = delete;
 
-    static FramebufferManager & getInstance();
-    static void deleteInstance();
+    // Singleton lifetime and access:
+    static WAR3_INLINE FramebufferManager & getInstance()
+    {
+        if (sharedInstance == nullptr)
+        {
+            sharedInstance = new FramebufferManager{};
+        }
+        return *sharedInstance;
+    }
+
+    static WAR3_INLINE void deleteInstance()
+    {
+        delete sharedInstance;
+        sharedInstance = nullptr;
+    }
 
     void onFrameStarted(int scrW, int scrH);
     void onFrameEnded();
@@ -128,7 +141,7 @@ private:
     FramebufferManager();
     static FramebufferManager * sharedInstance;
 
-    // The offscreen FB we redirect War3 render to:
+    // The offscreen FB we redirect the War3 renderer to:
     std::unique_ptr<Framebuffer> framebuffer;
 };
 

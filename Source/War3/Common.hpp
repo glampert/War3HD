@@ -25,8 +25,31 @@
 #include <iostream>
 #include <fstream>
 
+#define WAR3_INLINE __forceinline
+
+#define WAR3_HELPER_TOKEN_APPEND2(x, y) x ## y
+#define WAR3_TOKEN_APPEND2(x, y) WAR3_HELPER_TOKEN_APPEND2(x, y)
+
 namespace War3
 {
+
+//---------------------------
+
+template<class F>
+struct ScopeExitType
+{
+    F fn;
+    ScopeExitType(F f) : fn(f) { }
+    ~ScopeExitType() { fn(); }
+};
+
+template<class F>
+inline ScopeExitType<F> makeScopeExit(F f) noexcept { return ScopeExitType<F>(f); }
+
+#define WAR3_SCOPE_EXIT(codeBlock) \
+    auto WAR3_TOKEN_APPEND2(my_scope_exit_, __LINE__) = makeScopeExit([=]() mutable { codeBlock })
+
+//---------------------------
 
 using UByte = std::uint8_t;
 using UInt  = unsigned int;

@@ -870,7 +870,7 @@ namespace War3
 
 static bool newRendererEnabled = false;
 
-static inline void GLRendererShutdown()
+static WAR3_INLINE void GLRendererShutdown()
 {
     GLPROXY_LOG("\n**** War3HD renderer shutdown ****\n");
 
@@ -879,7 +879,7 @@ static inline void GLRendererShutdown()
     ShaderProgramManager::deleteInstance();
 }
 
-static inline void GLFrameStart()
+static WAR3_INLINE void GLFrameStart()
 {
     if (!newRendererEnabled)
     {
@@ -895,7 +895,7 @@ static inline void GLFrameStart()
     FramebufferManager::getInstance().onFrameStarted(viewport[2], viewport[3]);
 }
 
-static inline void GLFrameEnd()
+static WAR3_INLINE void GLFrameEnd()
 {
     if (!newRendererEnabled)
     {
@@ -929,12 +929,12 @@ GLFUNC_2_WRET(BOOL,  wglShareLists, HGLRC, hglrc1, HGLRC, hglrc2);
 
 //static Framebuffer * g_fb = nullptr;
 
-static inline bool isKeyDown(int key)
+static WAR3_INLINE bool isKeyDown(int key)
 {
     return (GetAsyncKeyState(key) & 0x8000) ? true : false;
 }
 
-static inline bool isKeyUp(int key)
+static WAR3_INLINE bool isKeyUp(int key)
 {
     return (GetAsyncKeyState(key) & 0x8000) ? false : true;
 }

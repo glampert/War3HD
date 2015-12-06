@@ -11,6 +11,7 @@
 #define WAR3_SHADER_PROGRAM_HPP
 
 #include "War3/Common.hpp"
+#include <vector>
 #include <array>
 
 namespace War3
@@ -34,11 +35,17 @@ public:
     ShaderProgram(ShaderProgram && other) noexcept;
     ShaderProgram & operator = (ShaderProgram && other) noexcept;
 
-    // Initialize from the text contents of a shader file.
-    ShaderProgram(TextBuffer && vsSrcText, TextBuffer && fsSrcText);
+    // Initialize from the text contents of a shader source file.
+    ShaderProgram(TextBuffer && vsSrcText,
+                  TextBuffer && fsSrcText,
+                  const std::string & directives = "");
 
-    // Initialize from vertex and fragment shader source files. Both files must be valid.
-    ShaderProgram(const std::string & vsFile, const std::string & fsFile);
+    // Initialize from vertex and fragment shader source files.
+    // Both files must be valid. You can provided additional directives
+    // or even code that is added right at the top of each file.
+    ShaderProgram(const std::string & vsFile,
+                  const std::string & fsFile,
+                  const std::string & directives = "");
 
     // Frees the associated data.
     ~ShaderProgram();
@@ -85,7 +92,8 @@ private:
     void invalidate() noexcept;
 
     static TextBuffer loadShaderFile(const std::string & filename);
-    static bool checkShaderInfoLogs(UInt progHandle, UInt vsHandle, UInt fsHandle);
+    static const char * findShaderIncludes(const char * srcText, std::vector<std::string> & includeFiles);
+    static bool checkShaderInfoLogs(UInt progHandle, UInt vsHandle, UInt fsHandle) noexcept;
 
     // OpenGL program handle.
     UInt handle;
@@ -112,19 +120,32 @@ public:
     ShaderProgramManager(const ShaderProgramManager &) = delete;
     ShaderProgramManager & operator = (const ShaderProgramManager &) = delete;
 
-    static ShaderProgramManager & getInstance();
-    static void deleteInstance();
+    // Singleton lifetime and access:
+    static WAR3_INLINE ShaderProgramManager & getInstance()
+    {
+        if (sharedInstance == nullptr)
+        {
+            sharedInstance = new ShaderProgramManager{};
+        }
+        return *sharedInstance;
+    }
+
+    static WAR3_INLINE void deleteInstance()
+    {
+        delete sharedInstance;
+        sharedInstance = nullptr;
+    }
 
     // Shaders available:
     enum ShaderId
     {
-        FXAA,
+        FramePostProcess,
         Count // Internal use
     };
 
-    const ShaderProgram & getShader(const ShaderId id) const
+    WAR3_INLINE const ShaderProgram & getShader(const ShaderId id) const
     {
-        return *shaders[static_cast<unsigned>(id)];
+        return *shaders[static_cast<int>(id)];
     }
 
 private:
@@ -135,7 +156,7 @@ private:
 
     // Shader pool, all entries initialized on startup:
     using ShaderProgPtr = std::unique_ptr<ShaderProgram>;
-    static constexpr int SPCount = int(ShaderId::Count);
+    static constexpr int SPCount = static_cast<int>(ShaderId::Count);
     std::array<ShaderProgPtr, SPCount> shaders;
 };
 

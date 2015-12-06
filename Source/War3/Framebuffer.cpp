@@ -340,21 +340,6 @@ bool Framebuffer::saveImageHelper(const std::string & filename, const RenderTarg
 
 FramebufferManager * FramebufferManager::sharedInstance{ nullptr };
 
-FramebufferManager & FramebufferManager::getInstance()
-{
-    if (sharedInstance == nullptr)
-    {
-        sharedInstance = new FramebufferManager{};
-    }
-    return *sharedInstance;
-}
-
-void FramebufferManager::deleteInstance()
-{
-    delete sharedInstance;
-    sharedInstance = nullptr;
-}
-
 FramebufferManager::FramebufferManager()
 {
     info("---- FramebufferManager startup ----");
@@ -371,10 +356,6 @@ void FramebufferManager::onFrameStarted(const int scrW, const int scrH)
 
         if (scrW > 0 && scrH > 0)
         {
-            //TEMP testing Nearest filter with pixelated shader
-//            framebuffer = std::make_unique<Framebuffer>(scrW, scrH, true,
-//                        Image::Filter::Nearest, Image::Filter::Nearest);
-
             framebuffer = std::make_unique<Framebuffer>(scrW, scrH, true,
                         Image::Filter::Bilinear, Image::Filter::Nearest);
         }
@@ -401,9 +382,8 @@ void FramebufferManager::onFrameEnded()
 
 void FramebufferManager::presentColorBuffer()
 {
-    //TEMP testing
-    //static ShaderProgram sp{"NewShaders\\test.vert", "NewShaders\\test.frag"};
-    const auto & sp = ShaderProgramManager::getInstance().getShader(ShaderProgramManager::ShaderId::FXAA);
+    //TODO TEMP testing
+    const auto & sp = ShaderProgramManager::getInstance().getShader(ShaderProgramManager::ShaderId::FramePostProcess);
     sp.bind();
 
     sp.setUniform1i(sp.getUniformLocation("u_ColorRenderTarget"), 0);

@@ -9,10 +9,20 @@
 
 #include "War3/ShaderProgram.hpp"
 #include "GLProxy/GLExtensions.hpp"
-#include <cstdio> // for std::fopen/sscanf
+#include <cstdio>  // For std::fopen/sscanf
+#include <cstring> // For std::strstr
 
 namespace War3
 {
+
+// ========================================================
+// WAR3_SHADER_PATH:
+// ========================================================
+
+// Built-in shaders file search path:
+#ifndef WAR3_SHADER_PATH
+    #define WAR3_SHADER_PATH "NewShaders\\"
+#endif // WAR3_SHADER_PATH
 
 // ========================================================
 // class ShaderProgram:
@@ -39,7 +49,7 @@ ShaderProgram & ShaderProgram::operator = (ShaderProgram && other) noexcept
     return *this;
 }
 
-ShaderProgram::ShaderProgram(TextBuffer && vsSrcText, TextBuffer && fsSrcText)
+ShaderProgram::ShaderProgram(TextBuffer && vsSrcText, TextBuffer && fsSrcText, const std::string & directives)
     : handle   { 0 }
     , linkedOk { false }
 {
@@ -50,12 +60,41 @@ ShaderProgram::ShaderProgram(TextBuffer && vsSrcText, TextBuffer && fsSrcText)
         warning("Null Vertex Shader source!");
         return;
     }
-
     if (fsSrcText == nullptr)
     {
         warning("Null Fragment Shader source!");
         return;
     }
+
+    //
+    // Shader #include resolution:
+    //
+
+    std::string vsIncludedText;
+    std::string fsIncludedText;
+    std::vector<std::string> vsIncludes;
+    std::vector<std::string> fsIncludes;
+
+    const char * vsSrcTextPtr = findShaderIncludes(vsSrcText.get(), vsIncludes);
+    const char * fsSrcTextPtr = findShaderIncludes(fsSrcText.get(), fsIncludes);
+
+    for (const auto & incFile : vsIncludes)
+    {
+        info("Loading Vertex Shader include \"" + incFile + "\"...");
+        auto fileContents = loadShaderFile(incFile);
+        vsIncludedText += (fileContents != nullptr ? fileContents.get() : "");
+    }
+
+    for (const auto & incFile : fsIncludes)
+    {
+        info("Loading Fragment Shader include \"" + incFile + "\"...");
+        auto fileContents = loadShaderFile(incFile);
+        fsIncludedText += (fileContents != nullptr ? fileContents.get() : "");
+    }
+
+    //
+    // GL handle allocation:
+    //
 
     const auto glProgHandle = GLProxy::glCreateProgram();
     if (glProgHandle == 0)
@@ -75,14 +114,14 @@ ShaderProgram::ShaderProgram(TextBuffer && vsSrcText, TextBuffer && fsSrcText)
     }
 
     // Vertex shader:
-    const char * vsSrcStrings[]{ getGlslVersionDirective().c_str(), vsSrcText.get() };
-    GLProxy::glShaderSource(glVsHandle, 2, vsSrcStrings, nullptr);
+    const char * vsSrcStrings[]{ getGlslVersionDirective().c_str(), directives.c_str(), vsIncludedText.c_str(), vsSrcTextPtr };
+    GLProxy::glShaderSource(glVsHandle, arrayLength(vsSrcStrings), vsSrcStrings, nullptr);
     GLProxy::glCompileShader(glVsHandle);
     GLProxy::glAttachShader(glProgHandle, glVsHandle);
 
     // Fragment shader:
-    const char * fsSrcStrings[]{ getGlslVersionDirective().c_str(), fsSrcText.get() };
-    GLProxy::glShaderSource(glFsHandle, 2, fsSrcStrings, nullptr);
+    const char * fsSrcStrings[]{ getGlslVersionDirective().c_str(), directives.c_str(), fsIncludedText.c_str(), fsSrcTextPtr };
+    GLProxy::glShaderSource(glFsHandle, arrayLength(fsSrcStrings), fsSrcStrings, nullptr);
     GLProxy::glCompileShader(glFsHandle);
     GLProxy::glAttachShader(glProgHandle, glFsHandle);
 
@@ -98,7 +137,7 @@ ShaderProgram::ShaderProgram(TextBuffer && vsSrcText, TextBuffer && fsSrcText)
     GLProxy::glDeleteShader(glFsHandle);
 
     // OpenGL likes to defer GPU resource allocation to the first time
-    // an object is bound to the current state. Binding it know should
+    // an object is bound to the current state. Binding it now should
     // "warm up" the resource and avoid lag on the first frame rendered with it.
     currentProg = glProgHandle;
     GLProxy::glUseProgram(glProgHandle);
@@ -108,11 +147,11 @@ ShaderProgram::ShaderProgram(TextBuffer && vsSrcText, TextBuffer && fsSrcText)
     handle = glProgHandle;
 }
 
-ShaderProgram::ShaderProgram(const std::string & vsFile, const std::string & fsFile)
-    : ShaderProgram { loadShaderFile(vsFile), loadShaderFile(fsFile) }
+ShaderProgram::ShaderProgram(const std::string & vsFile, const std::string & fsFile, const std::string & directives)
+    : ShaderProgram { loadShaderFile(vsFile), loadShaderFile(fsFile), directives }
 {
     // Just forwards to the other constructor...
-    info("New ShaderProgram created from '" + vsFile + "' and '" + fsFile + "'.");
+    info("New ShaderProgram created from \"" + vsFile + "\" and \"" + fsFile + "\".");
 }
 
 ShaderProgram::~ShaderProgram()
@@ -145,21 +184,29 @@ ShaderProgram::TextBuffer ShaderProgram::loadShaderFile(const std::string & file
 {
     if (filename.empty())
     {
-        warning("Empty filename in loadShaderFile()!");
+        warning("Empty filename in ShaderProgram::loadShaderFile()!");
         return nullptr;
     }
 
     FILE * fileIn = nullptr;
+    const auto fillPath = WAR3_SHADER_PATH + filename;
+
+    WAR3_SCOPE_EXIT(
+        if (fileIn != nullptr)
+        {
+            std::fclose(fileIn);
+        }
+    );
 
     #ifdef _MSC_VER
-    fopen_s(&fileIn, filename.c_str(), "rb");
+    fopen_s(&fileIn, fillPath.c_str(), "rb");
     #else // !_MSC_VER
-    fileIn = std::fopen(filename.c_str(), "rb");
+    fileIn = std::fopen(fillPath.c_str(), "rb");
     #endif // _MSC_VER
 
     if (fileIn == nullptr)
     {
-        warning("Can't open shader file \"" + filename + "\"!");
+        warning("Can't open shader file \"" + fillPath + "\"!");
         return nullptr;
     }
 
@@ -169,25 +216,60 @@ ShaderProgram::TextBuffer ShaderProgram::loadShaderFile(const std::string & file
 
     if (fileLength <= 0 || std::ferror(fileIn))
     {
-        warning("Error getting length or empty shader file! \"" + filename + "\".");
-        std::fclose(fileIn);
+        warning("Error getting length or empty shader file! \"" + fillPath + "\".");
         return nullptr;
     }
 
     TextBuffer fileContents{ new char[fileLength + 1] };
     if (std::fread(fileContents.get(), 1, fileLength, fileIn) != std::size_t(fileLength))
     {
-        warning("Failed to read whole shader file! \"" + filename + "\".");
-        std::fclose(fileIn);
+        warning("Failed to read whole shader file! \"" + fillPath + "\".");
         return nullptr;
     }
 
-    std::fclose(fileIn);
     fileContents[fileLength] = '\0';
     return fileContents;
 }
 
-bool ShaderProgram::checkShaderInfoLogs(const UInt progHandle, const UInt vsHandle, const UInt fsHandle)
+const char * ShaderProgram::findShaderIncludes(const char * srcText, std::vector<std::string> & includeFiles)
+{
+    //
+    // Very simple #include resolution. Include directives
+    // should be the fist things in a shader file, besides comments.
+    //
+
+    std::string includeFile;
+    const char * incPtr = std::strstr(srcText, "#include");
+
+    for (; incPtr != nullptr; incPtr = std::strstr(incPtr, "#include"))
+    {
+        // Skip the directive:
+        incPtr += std::strlen("#include");
+
+        // Skip till first quote:
+        for (; *incPtr != '\0' && *incPtr != '"'; ++incPtr) { }
+
+        // Get the filename:
+        if (*incPtr == '"')
+        {
+            ++incPtr; // Skip past the first quote
+            for (; *incPtr != '\0' && *incPtr != '"'; ++incPtr)
+            {
+                includeFile.push_back(*incPtr);
+            }
+
+            includeFiles.emplace_back(std::move(includeFile));
+            includeFile.clear();
+
+            // Whatever text followed this include directive.
+            srcText = ++incPtr;
+        }
+    }
+
+    return srcText;
+}
+
+bool ShaderProgram::checkShaderInfoLogs(const UInt progHandle, const UInt vsHandle, const UInt fsHandle) noexcept
 {
     constexpr int InfoLogMaxChars = 2048;
 
@@ -293,7 +375,6 @@ int ShaderProgram::getUniformLocation(const std::string & uniformName) const noe
     {
         return -1;
     }
-
     return GLProxy::glGetUniformLocation(handle, uniformName.c_str());
 }
 
@@ -309,7 +390,6 @@ void ShaderProgram::setUniform1i(const int loc, const int x) const noexcept
         warning("setUniform1i: Program not current!");
         return;
     }
-
     GLProxy::glUniform1i(loc, x);
 }
 
@@ -325,12 +405,10 @@ void ShaderProgram::setUniform2i(const int loc, const int x, const int y) const 
         warning("setUniform2i: Program not current!");
         return;
     }
-
     GLProxy::glUniform2i(loc, x, y);
 }
 
-void ShaderProgram::setUniform3i(const int loc, const int x,
-                                 const int y, const int z) const noexcept
+void ShaderProgram::setUniform3i(const int loc, const int x, const int y, const int z) const noexcept
 {
     if (loc < 0)
     {
@@ -342,12 +420,10 @@ void ShaderProgram::setUniform3i(const int loc, const int x,
         warning("setUniform3i: Program not current!");
         return;
     }
-
     GLProxy::glUniform3i(loc, x, y, z);
 }
 
-void ShaderProgram::setUniform4i(const int loc, const int x, const int y,
-                                 const int z, const int w) const noexcept
+void ShaderProgram::setUniform4i(const int loc, const int x, const int y, const int z, const int w) const noexcept
 {
     if (loc < 0)
     {
@@ -359,7 +435,6 @@ void ShaderProgram::setUniform4i(const int loc, const int x, const int y,
         warning("setUniform4i: Program not current!");
         return;
     }
-
     GLProxy::glUniform4i(loc, x, y, z, w);
 }
 
@@ -375,7 +450,6 @@ void ShaderProgram::setUniform1f(const int loc, const float x) const noexcept
         warning("setUniform1f: Program not current!");
         return;
     }
-
     GLProxy::glUniform1f(loc, x);
 }
 
@@ -391,12 +465,10 @@ void ShaderProgram::setUniform2f(const int loc, const float x, const float y) co
         warning("setUniform2f: Program not current!");
         return;
     }
-
     GLProxy::glUniform2f(loc, x, y);
 }
 
-void ShaderProgram::setUniform3f(const int loc, const float x,
-                                 const float y, const float z) const noexcept
+void ShaderProgram::setUniform3f(const int loc, const float x, const float y, const float z) const noexcept
 {
     if (loc < 0)
     {
@@ -408,12 +480,10 @@ void ShaderProgram::setUniform3f(const int loc, const float x,
         warning("setUniform3f: Program not current!");
         return;
     }
-
     GLProxy::glUniform3f(loc, x, y, z);
 }
 
-void ShaderProgram::setUniform4f(const int loc, const float x, const float y,
-                                 const float z, const float w) const noexcept
+void ShaderProgram::setUniform4f(const int loc, const float x, const float y, const float z, const float w) const noexcept
 {
     if (loc < 0)
     {
@@ -425,7 +495,6 @@ void ShaderProgram::setUniform4f(const int loc, const float x, const float y,
         warning("setUniform4f: Program not current!");
         return;
     }
-
     GLProxy::glUniform4f(loc, x, y, z, w);
 }
 
@@ -441,7 +510,6 @@ void ShaderProgram::setUniformMat3(const int loc, const float * m) const noexcep
         warning("setUniformMat3: Program not current!");
         return;
     }
-
     GLProxy::glUniformMatrix3fv(loc, 1, GL_FALSE, m);
 }
 
@@ -457,37 +525,14 @@ void ShaderProgram::setUniformMat4(const int loc, const float * m) const noexcep
         warning("setUniformMat4: Program not current!");
         return;
     }
-
     GLProxy::glUniformMatrix4fv(loc, 1, GL_FALSE, m);
 }
-
-// ========================================================
-
-// Built-in shaders file path:
-#ifndef WAR3_SHADER_PATH
-    #define WAR3_SHADER_PATH "NewShaders\\"
-#endif // WAR3_SHADER_PATH
 
 // ========================================================
 // class ShaderProgramManager:
 // ========================================================
 
 ShaderProgramManager * ShaderProgramManager::sharedInstance{ nullptr };
-
-ShaderProgramManager & ShaderProgramManager::getInstance()
-{
-    if (sharedInstance == nullptr)
-    {
-        sharedInstance = new ShaderProgramManager{};
-    }
-    return *sharedInstance;
-}
-
-void ShaderProgramManager::deleteInstance()
-{
-    delete sharedInstance;
-    sharedInstance = nullptr;
-}
 
 ShaderProgramManager::ShaderProgramManager()
 {
@@ -497,9 +542,9 @@ ShaderProgramManager::ShaderProgramManager()
     // Warm up all the shaders we're going to need:
     //
 
-    shaders[int(ShaderId::FXAA)] =
-            std::make_unique<ShaderProgram>(
-                    WAR3_SHADER_PATH "Fxaa.vert", WAR3_SHADER_PATH "Fxaa.frag");
+    shaders[static_cast<int>(ShaderId::FramePostProcess)] =
+        std::make_unique<ShaderProgram>("FramePostProcess.vert",
+                                        "FramePostProcess.frag");
 }
 
 } // namespace War3 {}
