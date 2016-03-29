@@ -26,11 +26,17 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Source\GLProxy\Opengl32.def" />
+    <None Include="..\Source\Shaders\FramePostProcess.frag" />
+    <None Include="..\Source\Shaders\FramePostProcess.vert" />
+    <None Include="..\Source\Shaders\Test.frag" />
+    <None Include="..\Source\Shaders\Test.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\External\stb\stb_image_write.h" />
     <ClInclude Include="..\Source\GLProxy\GLEnums.hpp" />
     <ClInclude Include="..\Source\GLProxy\GLExtensions.hpp" />
+    <ClInclude Include="..\Source\Shaders\FXAA.h" />
+    <ClInclude Include="..\Source\Shaders\HDR.h" />
     <ClInclude Include="..\Source\War3\Common.hpp" />
     <ClInclude Include="..\Source\War3\Framebuffer.hpp" />
     <ClInclude Include="..\Source\War3\Image.hpp" />

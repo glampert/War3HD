@@ -69,7 +69,7 @@ constexpr T clamp(const T & x, const T & minimum, const T & maximum) noexcept
 }
 
 //TEMPORARY
-DECLSPEC_NORETURN inline void fatalError(const std::string & message) noexcept
+DECLSPEC_NORETURN inline void fatalError(const std::string & message)
 {
     MessageBoxA(nullptr, message.c_str(), "War3HD Fatal Error", MB_OK | MB_ICONERROR);
     std::exit(EXIT_FAILURE);

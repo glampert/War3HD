@@ -14,6 +14,9 @@
     <Filter Include="Source Files\External">
       <UniqueIdentifier>{26a5d809-50be-4554-bd54-2862be132d58}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Shaders">
+      <UniqueIdentifier>{c4eeddba-d142-45ce-a88d-7ef5b3370590}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\War3\Image.cpp">
@@ -51,10 +54,28 @@
     <ClInclude Include="..\Source\External\stb\stb_image_write.h">
       <Filter>Source Files\External</Filter>
     </ClInclude>
+    <ClInclude Include="..\Source\Shaders\FXAA.h">
+      <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Shaders\HDR.h">
+      <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Source\GLProxy\Opengl32.def">
       <Filter>Source Files\GLProxy</Filter>
+    </None>
+    <None Include="..\Source\Shaders\FramePostProcess.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="..\Source\Shaders\FramePostProcess.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="..\Source\Shaders\Test.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="..\Source\Shaders\Test.vert">
+      <Filter>Source Files\Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>
