@@ -1,7 +1,7 @@
 ---
 # BasedOnStyle:  Mozilla
 Language:                                       Cpp
-AccessModifierOffset:                           -2
+AccessModifierOffset:                           -4
 AlignAfterOpenBracket:                          true
 AlignEscapedNewlinesLeft:                       false
 AlignOperands:                                  true
