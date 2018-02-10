@@ -40,14 +40,15 @@ PenaltyBreakString:                             1000
 PenaltyBreakFirstLessLess:                      120
 PenaltyExcessCharacter:                         1000000
 PenaltyReturnTypeOnItsOwnLine:                  200
-PointerAlignment:                               Middle
+PointerAlignment:                               Left
 SpacesBeforeTrailingComments:                   1
 Cpp11BracedListStyle:                           false
-Standard:                                       Cpp03
+Standard:                                       Cpp11
 IndentWidth:                                    4
 TabWidth:                                       8
 UseTab:                                         Never
 BreakBeforeBraces:                              Allman
+SpaceAfterTemplateKeyword:                      false
 SpacesInParentheses:                            false
 SpacesInSquareBrackets:                         false
 SpacesInAngles:                                 false
@@ -57,8 +58,6 @@ SpaceAfterCStyleCast:                           false
 SpacesInContainerLiterals:                      true
 SpaceBeforeAssignmentOperators:                 true
 ContinuationIndentWidth:                        0
-CommentPragmas:                                 '^ IWYU pragma:'
-ForEachMacros:                                  [ foreach, Q_FOREACH, BOOST_FOREACH ]
 SpaceBeforeParens:                              ControlStatements
 DisableFormat:                                  false
 ...
