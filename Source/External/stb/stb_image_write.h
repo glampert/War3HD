@@ -1160,27 +1160,3 @@ STBIWDEF int stbi_write_png_to_func(stbi_write_func * func, void * context, int 
 
 #endif // STB_IMAGE_WRITE_IMPLEMENTATION
 
-/* Revision history
-      1.00 (2015-09-14)
-             installable file IO function
-      0.99 (2015-09-13)
-             warning fixes; TGA rle support
-      0.98 (2015-04-08)
-             added STBIW_MALLOC, STBIW_ASSERT etc
-      0.97 (2015-01-18)
-             fixed HDR asserts, rewrote HDR rle logic
-      0.96 (2015-01-17)
-             add HDR output
-             fix monochrome BMP
-      0.95 (2014-08-17)
-		       add monochrome TGA output
-      0.94 (2014-05-31)
-             rename private functions to avoid conflicts with stb_image.h
-      0.93 (2014-05-27)
-             warning fixes
-      0.92 (2010-08-01)
-             casts to unsigned char to fix warnings
-      0.91 (2010-07-17)
-             first public release
-      0.90   first internal release
-*/
