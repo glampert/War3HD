@@ -1,14 +1,11 @@
 
-// ================================================================================================
-// -*- C++ -*-
-// File: GLEnums.hpp
-// Author: Guilherme R. Lampert
-// Created on: 26/11/15
-// Brief: Local copy of the OpenGL enums/constants we care about.
-// ================================================================================================
+#pragma once
 
-#ifndef GLPROXY_GL_ENUMS_HPP
-#define GLPROXY_GL_ENUMS_HPP
+// ============================================================================
+// File:   GLEnums.hpp
+// Author: Guilherme R. Lampert
+// Brief:  Local copy of the OpenGL enums/constants we care about.
+// ============================================================================
 
 // Guards from the original GL/gl.h
 #ifndef __gl_h_
@@ -22,7 +19,7 @@
  * However, these qualifiers alone don't seem enough to prevent the linker from
  * decorating our function names, so an additional '.def' file is also required.
  */
-#define GLPROXY_DECL   __stdcall
+#define GLPROXY_DECL __stdcall
 #define GLPROXY_EXTERN extern "C"
 
 /* -------------------------------------------------------- */
@@ -1294,5 +1291,3 @@ typedef void            (GLPROXY_DECL * pfn_glEnableVertexAttribArray)   (GLuint
 
 #endif // __GL_H__
 #endif // __gl_h_
-
-#endif // GLPROXY_GL_ENUMS_HPP

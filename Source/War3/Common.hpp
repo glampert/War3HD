@@ -1,102 +1,155 @@
 
-// ================================================================================================
-// -*- C++ -*-
-// File: Common.hpp
+#pragma once
+
+// ============================================================================
+// File:   Common.hpp
 // Author: Guilherme R. Lampert
-// Created on: 25/11/15
-// Brief: Miscellaneous shared definitions and functions.
-// ================================================================================================
+// Brief:  Miscellaneous shared definitions and functions.
+// ============================================================================
 
-#ifndef WAR3_COMMON_HPP
-#define WAR3_COMMON_HPP
-
+#include <cstdarg>
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
-#include <utility>
+#include <intrin.h>
 #include <memory>
 #include <string>
+#include <utility>
 
-#define NOGDI
-#define VC_EXTRALEAN
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+// Microsoft's own flavor of format string checking.
+// This sadly won't even be used by the compiler, only the static analyzer cares about it,
+// so you only get the warnings when building with '/analyze'. Still better than nothing.
+#include <sal.h>
 
-//TEMP used by the log only
-#include <iostream>
-#include <fstream>
+#define WAR3_PRINTF_LIKE     _Printf_format_string_
+#define WAR3_ATTRIB_NORETURN __declspec(noreturn)
+#define WAR3_ATTRIB_NOINLINE __declspec(noinline)
 
-#define WAR3_INLINE __forceinline
+// Appends a pair tokens into a single name/identifier.
+// Normally used to declared internal/built-in functions and variables.
+#define WAR3_STRING_JOIN2_HELPER(a, b) a ## b
+#define WAR3_STRING_JOIN2(a, b) WAR3_STRING_JOIN2_HELPER(a, b)
 
-#define WAR3_HELPER_TOKEN_APPEND2(x, y) x ## y
-#define WAR3_TOKEN_APPEND2(x, y) WAR3_HELPER_TOKEN_APPEND2(x, y)
+// Code/text to string
+#define WAR3_STRINGIZE_HELPER(str) #str
+#define WAR3_STRINGIZE(str) WAR3_STRINGIZE_HELPER(str)
+
+#ifdef NDEBUG
+    #define WAR3_ASSERT(expr) /*nothing*/
+    #define WAR3_DEBUGBREAK() std::abort()
+#else // NDEBUG
+    #define WAR3_ASSERT(expr) ((void)((expr) || (War3::assertFailure(#expr, __FUNCTION__, __FILE__, __LINE__), 0)))
+    #define WAR3_DEBUGBREAK() __debugbreak()
+#endif // NDEBUG
 
 namespace War3
 {
 
-//---------------------------
+// ========================================================
 
-template<class F>
-struct ScopeExitType
+template<typename F>
+struct ScopeExitType final
 {
-    F fn;
-    ScopeExitType(F f) : fn(f) { }
-    ~ScopeExitType() { fn(); }
+    F m_fn;
+    ScopeExitType(F f) : m_fn(std::move(f)) {}
+    ~ScopeExitType() { m_fn(); }
 };
 
-template<class F>
-inline ScopeExitType<F> makeScopeExit(F f) noexcept { return ScopeExitType<F>(f); }
+template<typename F>
+inline ScopeExitType<F> makeScopeExit(F f) { return ScopeExitType<F>(std::move(f)); }
 
 #define WAR3_SCOPE_EXIT(codeBlock) \
-    auto WAR3_TOKEN_APPEND2(my_scope_exit_, __LINE__) = makeScopeExit([=]() mutable { codeBlock })
+    auto WAR3_STRING_JOIN2(my_scope_exit_, __LINE__) = makeScopeExit([=]() mutable { codeBlock })
 
-//---------------------------
+// ========================================================
 
-using UByte = std::uint8_t;
-using UInt  = unsigned int;
+struct Size2D final
+{
+    int width;
+    int height;
+};
+
+struct Size3D final
+{
+    int width;
+    int height;
+    int depth;
+};
 
 // Length in elements of type 'T' of statically allocated C++ arrays.
-template<class T, int N>
+template<typename T, int N>
 constexpr int arrayLength(const T (&)[N]) noexcept
 {
-	return N;
+    return N;
 }
 
 // Clamp any value within minimum/maximum range, inclusive.
-template<class T>
-constexpr T clamp(const T & x, const T & minimum, const T & maximum) noexcept
+template<typename T>
+constexpr T clamp(const T& x, const T& minimum, const T& maximum) noexcept
 {
-	return (x < minimum) ? minimum : (x > maximum) ? maximum : x;
+    return (x < minimum) ? minimum : (x > maximum) ? maximum : x;
 }
 
-//TEMPORARY
-DECLSPEC_NORETURN inline void fatalError(const std::string & message)
+// ========================================================
+
+class LogStream final
 {
-    MessageBoxA(nullptr, message.c_str(), "War3HD Fatal Error", MB_OK | MB_ICONERROR);
-    std::exit(EXIT_FAILURE);
-}
+public:
+    LogStream(const LogStream&) = delete;
+    LogStream& operator=(const LogStream&) = delete;
 
-//FIXME temp (remember to add a timestamp to the log !)
-inline static std::ofstream & getLogStream()
-{
-    static std::ofstream theLog{ "War3HD.log" };
-    return theLog;
-}
+    explicit LogStream(const char* filename, bool debugWindow = true);
+    ~LogStream();
 
-inline void error(const std::string & message) noexcept
-{
-    getLogStream() << "ERROR: " << message << std::endl;
-}
+    void write(char c);
+    void write(const char* str);
+    void writeV(const char* fmt, va_list vaArgs);
+    void writeF(WAR3_PRINTF_LIKE const char* fmt, ...);
+    void flush();
 
-inline void warning(const std::string & message) noexcept
-{
-    getLogStream() << "WARN: " << message << std::endl;
-}
+private:
+    FILE* m_file;
+    const bool m_useDebugWindow;
+};
 
-inline void info(const std::string & message) noexcept
-{
-    getLogStream() << "INFO: " << message << "\n";
-}
+// ========================================================
 
-} // namespace War3 {}
+// Strips out all logging when zero.
+#define WAR3_WITH_LOG 1
 
-#endif // WAR3_COMMON_HPP
+// Report assert failure with log+popup and aborts.
+WAR3_ATTRIB_NORETURN
+WAR3_ATTRIB_NOINLINE
+void assertFailure(const char* expr, const char* func, const char* file, int line);
+
+// Log fatal error, flush log and exit with failure code.
+WAR3_ATTRIB_NORETURN
+WAR3_ATTRIB_NOINLINE
+void fatalError(WAR3_PRINTF_LIKE const char* fmt, ...);
+
+// Log printing helpers:
+#if WAR3_WITH_LOG
+    LogStream& getLogStream();
+    void error(WAR3_PRINTF_LIKE const char* fmt, ...);
+    void warn(WAR3_PRINTF_LIKE const char* fmt, ...);
+    void info(WAR3_PRINTF_LIKE const char* fmt, ...);
+#else // WAR3_WITH_LOG
+    #pragma warning(disable: 4714) // "function marked as __forceinline not inlined"
+    __forceinline void error(const char*, ...) { /* nothing */ }
+    __forceinline void warn(const char*,  ...) { /* nothing */ }
+    __forceinline void info(const char*,  ...) { /* nothing */ }
+#endif // WAR3_WITH_LOG
+
+// ========================================================
+
+// Miscellaneous utility functions:
+std::string numToString(const std::uint64_t num);
+std::string ptrToString(const void* ptr);
+std::string getTimeString();
+std::string lastWinErrorAsString();
+std::string getRealGLLibPath();
+void* getSelfModuleHandle(); // -> HMODULE
+
+// ========================================================
+
+} // namespace War3

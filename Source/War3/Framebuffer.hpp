@@ -1,14 +1,11 @@
 
-// ================================================================================================
-// -*- C++ -*-
-// File: Framebuffer.hpp
-// Author: Guilherme R. Lampert
-// Created on: 02/12/15
-// Brief: Framebuffer capture and management.
-// ================================================================================================
+#pragma once
 
-#ifndef WAR3_FRAMEBUFFER_HPP
-#define WAR3_FRAMEBUFFER_HPP
+// ============================================================================
+// File:   Framebuffer.hpp
+// Author: Guilherme R. Lampert
+// Brief:  Framebuffer capture and management.
+// ============================================================================
 
 #include "War3/Common.hpp"
 #include "War3/Image.hpp"
@@ -24,21 +21,21 @@ namespace War3
 class Framebuffer final
 {
 public:
-
-    enum class RenderTarget
+    enum RenderTargetId
     {
-        ColorBuffer,
-        DepthBuffer,
-        Count // Internal use
+        kColorBuffer,
+        kDepthBuffer,
+
+        kRTCount // Number of entries in the enum - internal use
     };
 
     // Not copyable.
-    Framebuffer(const Framebuffer &) = delete;
-    Framebuffer & operator = (const Framebuffer &) = delete;
+    Framebuffer(const Framebuffer&) = delete;
+    Framebuffer& operator=(const Framebuffer&) = delete;
 
     // Movable.
-    Framebuffer(Framebuffer && other) noexcept;
-    Framebuffer & operator = (Framebuffer && other) noexcept;
+    Framebuffer(Framebuffer&& other) noexcept;
+    Framebuffer& operator=(Framebuffer&& other) noexcept;
 
     // Create framebuffer with given dimensions in pixels.
     Framebuffer(int w, int h, bool withDepthBuffer,
@@ -51,28 +48,27 @@ public:
     void bind() const noexcept;
 
     // Bind one of the render target texture for use as a normal OpenGL texture.
-    void bindRenderTargetTexture(RenderTarget rtId, int tmu) const noexcept;
+    void bindRenderTargetTexture(RenderTargetId rtId, int tmu) const noexcept;
 
     // Binds the default screen framebuffer (0).
     static void bindNull() noexcept;
 
     // Handle to the currently enabled GL framebuffer.
-    static UInt getCurrentGLFramebuffer() noexcept { return currentFbo; }
+    static unsigned getCurrentGLFramebuffer() noexcept { return sm_currentFbo; }
 
     // Saving render targets to file (path must already exist! / FB must be already bound!):
-    bool savePng(const std::string & filename, RenderTarget rtId) const;
-    bool saveTga(const std::string & filename, RenderTarget rtId) const;
+    bool savePng(const std::string& filename, RenderTargetId rtId) const;
+    bool saveTga(const std::string& filename, RenderTargetId rtId) const;
 
     // Miscellaneous:
-    int getWidth()  const noexcept { return width;  }
-    int getHeight() const noexcept { return height; }
-    bool isValid()  const noexcept { return handle != 0 && validationOk; }
-    bool isBound()  const noexcept { return handle == currentFbo; }
+    int getWidth()  const noexcept { return m_width; }
+    int getHeight() const noexcept { return m_height; }
+    bool isValid()  const noexcept { return m_handle != 0 && m_validationOk; }
+    bool isBound()  const noexcept { return m_handle == sm_currentFbo; }
 
 private:
-
-    bool saveImageHelper(const std::string & filename, RenderTarget rtId,
-                         bool (Image::*saveMethod)(const std::string &) const) const;
+    bool saveImageHelper(const std::string& filename, RenderTargetId rtId,
+                         bool (Image::*saveMethod)(const std::string&) const) const;
 
     bool createFramebufferColorTexture(int w, int h, Image::Filter filter) noexcept;
     bool createFramebufferDepthTexture(int w, int h, Image::Filter filter) noexcept;
@@ -82,23 +78,23 @@ private:
     void validateSelf() noexcept;
     void invalidate() noexcept;
 
+private:
     // OpenGL FBO handle.
-    UInt handle;
+    unsigned m_handle;
 
     // Dimensions in pixels of all attachments.
-    int width;
-    int height;
+    int m_width;
+    int m_height;
 
     // Render target attachments for the FBO. Each is a handle to
     // a GL texture. For an unused attachment, the slot is set to zero.
-    static constexpr int RTCount = static_cast<int>(RenderTarget::Count);
-    std::array<UInt, RTCount> renderTargets;
+    std::array<unsigned, kRTCount> m_renderTargets;
 
     // True if the GL framebuffer validation succeeded.
-    bool validationOk;
+    bool m_validationOk;
 
     // Current OpenGL FBO enabled or 0 for the default.
-    static UInt currentFbo;
+    static unsigned sm_currentFbo;
 };
 
 // ========================================================
@@ -108,43 +104,37 @@ private:
 class FramebufferManager final
 {
 public:
+    FramebufferManager(const FramebufferManager&) = delete;
+    FramebufferManager& operator=(const FramebufferManager&) = delete;
 
-    // Not copyable.
-    FramebufferManager(const FramebufferManager &) = delete;
-    FramebufferManager & operator = (const FramebufferManager &) = delete;
-
-    // Singleton lifetime and access:
-    static WAR3_INLINE FramebufferManager & getInstance()
+    static FramebufferManager& getInstance()
     {
-        if (sharedInstance == nullptr)
+        if (sm_sharedInstance == nullptr)
         {
-            sharedInstance = new FramebufferManager{};
+            sm_sharedInstance = new FramebufferManager{};
         }
-        return *sharedInstance;
+        return *sm_sharedInstance;
     }
 
-    static WAR3_INLINE void deleteInstance()
+    static void deleteInstance()
     {
-        delete sharedInstance;
-        sharedInstance = nullptr;
+        delete sm_sharedInstance;
+        sm_sharedInstance = nullptr;
     }
 
     void onFrameStarted(int scrW, int scrH);
     void onFrameEnded();
 
 private:
-
     void presentColorBuffer();
-    void drawNdcQuadrilateral();
+    void drawFullscreenQuadrilateral();
 
     // Singleton instance:
     FramebufferManager();
-    static FramebufferManager * sharedInstance;
+    static FramebufferManager* sm_sharedInstance;
 
     // The offscreen FB we redirect the War3 renderer to:
-    std::unique_ptr<Framebuffer> framebuffer;
+    std::unique_ptr<Framebuffer> m_framebuffer;
 };
 
-} // namespace War3 {}
-
-#endif // WAR3_FRAMEBUFFER_HPP
+} // namespace War3

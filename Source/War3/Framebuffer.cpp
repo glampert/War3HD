@@ -1,11 +1,9 @@
 
-// ================================================================================================
-// -*- C++ -*-
-// File: Framebuffer.cpp
+// ============================================================================
+// File:   Framebuffer.cpp
 // Author: Guilherme R. Lampert
-// Created on: 02/12/15
-// Brief: Framebuffer capture and management.
-// ================================================================================================
+// Brief:  Framebuffer capture and management.
+// ============================================================================
 
 #include "War3/Framebuffer.hpp"
 #include "War3/ShaderProgram.hpp"
@@ -18,25 +16,27 @@ namespace War3
 // class Framebuffer:
 // ========================================================
 
-UInt Framebuffer::currentFbo{};
+unsigned Framebuffer::sm_currentFbo{};
 
-Framebuffer::Framebuffer(Framebuffer && other) noexcept
-    : handle { other.handle }
-    , width  { other.width  }
-    , height { other.height }
-    , validationOk { other.validationOk }
+Framebuffer::Framebuffer(Framebuffer&& other) noexcept
+    : m_handle{ other.m_handle }
+    , m_width{ other.m_width }
+    , m_height{ other.m_height }
+    , m_validationOk{ other.m_validationOk }
 {
-    renderTargets = other.renderTargets;
+    m_renderTargets = other.m_renderTargets;
     other.invalidate();
 }
 
-Framebuffer & Framebuffer::operator = (Framebuffer && other) noexcept
+Framebuffer& Framebuffer::operator=(Framebuffer&& other) noexcept
 {
-    handle        = other.handle;
-    width         = other.width;
-    height        = other.height;
-    validationOk  = other.validationOk;
-    renderTargets = other.renderTargets;
+    releaseGLHandles();
+
+    m_handle = other.m_handle;
+    m_width = other.m_width;
+    m_height = other.m_height;
+    m_validationOk = other.m_validationOk;
+    m_renderTargets = other.m_renderTargets;
 
     other.invalidate();
     return *this;
@@ -44,17 +44,17 @@ Framebuffer & Framebuffer::operator = (Framebuffer && other) noexcept
 
 Framebuffer::Framebuffer(const int w, const int h, const bool withDepthBuffer,
                          const Image::Filter colorFilter, const Image::Filter depthFilter)
-    : handle {  0 }
-    , width  { -1 }
-    , height { -1 }
-    , validationOk { false }
+    : m_handle{ 0 }
+    , m_width{ -1 }
+    , m_height{ -1 }
+    , m_validationOk{ false }
 {
-    renderTargets.fill(0);
+    m_renderTargets.fill(0);
     GLProxy::initializeExtensions();
 
     if (w <= 0 || h <= 0)
     {
-        warning("Bad Framebuffer dimensions!");
+        warn("Bad Framebuffer dimensions!");
         return;
     }
 
@@ -63,11 +63,11 @@ Framebuffer::Framebuffer(const int w, const int h, const bool withDepthBuffer,
 
     if (glFboHandle == 0)
     {
-        warning("Failed to allocate a new GL FBO handle! Possibly out-of-memory!");
+        warn("Failed to allocate a new GL FBO handle! Possibly out-of-memory!");
         GLPROXY_CHECK_GL_ERRORS();
     }
 
-    currentFbo = glFboHandle;
+    sm_currentFbo = glFboHandle;
     GLProxy::glBindFramebuffer(GL_FRAMEBUFFER, glFboHandle);
 
     if (!createFramebufferColorTexture(w, h, colorFilter))
@@ -76,7 +76,7 @@ Framebuffer::Framebuffer(const int w, const int h, const bool withDepthBuffer,
         freeGLRenderTargets();
         GLProxy::glDeleteFramebuffers(1, &glFboHandle);
 
-        warning("Failed to allocate one or more Framebuffer color textures!");
+        warn("Failed to allocate one or more Framebuffer color textures!");
         GLPROXY_CHECK_GL_ERRORS();
         return;
     }
@@ -89,20 +89,20 @@ Framebuffer::Framebuffer(const int w, const int h, const bool withDepthBuffer,
             freeGLRenderTargets();
             GLProxy::glDeleteFramebuffers(1, &glFboHandle);
 
-            warning("Failed to allocate Framebuffer depth render target!");
+            warn("Failed to allocate Framebuffer depth render target!");
             GLPROXY_CHECK_GL_ERRORS();
             return;
         }
     }
 
-    width  = w;
-    height = h;
-    handle = glFboHandle;
+    m_width  = w;
+    m_height = h;
+    m_handle = glFboHandle;
 
     validateSelf();
     GLPROXY_CHECK_GL_ERRORS();
 
-    info("New Framebuffer created: " + std::to_string(width) + "x" + std::to_string(height));
+    info("New Framebuffer created: %dx%d", m_width, m_height);
 }
 
 bool Framebuffer::createFramebufferColorTexture(const int w, const int h, const Image::Filter filter) noexcept
@@ -116,9 +116,9 @@ bool Framebuffer::createFramebufferColorTexture(const int w, const int h, const 
         return false;
     }
 
-    bindGLTexture(GL_TEXTURE_2D, glTexHandle);
+    GLUtil::bindGLTexture(GL_TEXTURE_2D, glTexHandle);
 
-    setGLTextureFiltering(GL_TEXTURE_2D, filter, false);
+    GLUtil::setGLTextureFiltering(GL_TEXTURE_2D, filter, false);
     GLProxy::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     GLProxy::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
@@ -126,9 +126,9 @@ bool Framebuffer::createFramebufferColorTexture(const int w, const int h, const 
     GLProxy::glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                     GL_TEXTURE_2D, glTexHandle, 0);
 
-    bindGLTexture(GL_TEXTURE_2D, 0);
+    GLUtil::bindGLTexture(GL_TEXTURE_2D, 0);
 
-    renderTargets[static_cast<int>(RenderTarget::ColorBuffer)] = glTexHandle;
+    m_renderTargets[kColorBuffer] = glTexHandle;
     return true;
 }
 
@@ -143,9 +143,9 @@ bool Framebuffer::createFramebufferDepthTexture(const int w, const int h, const 
         return false;
     }
 
-    bindGLTexture(GL_TEXTURE_2D, glTexHandle);
+    GLUtil::bindGLTexture(GL_TEXTURE_2D, glTexHandle);
 
-    setGLTextureFiltering(GL_TEXTURE_2D, filter, false);
+    GLUtil::setGLTextureFiltering(GL_TEXTURE_2D, filter, false);
     GLProxy::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     GLProxy::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     GLProxy::glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
@@ -154,9 +154,9 @@ bool Framebuffer::createFramebufferDepthTexture(const int w, const int h, const 
     GLProxy::glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                                     GL_TEXTURE_2D, glTexHandle, 0);
 
-    bindGLTexture(GL_TEXTURE_2D, 0);
+    GLUtil::bindGLTexture(GL_TEXTURE_2D, 0);
 
-    renderTargets[static_cast<int>(RenderTarget::DepthBuffer)] = glTexHandle;
+    m_renderTargets[kDepthBuffer] = glTexHandle;
     return true;
 }
 
@@ -167,77 +167,77 @@ Framebuffer::~Framebuffer()
 
 void Framebuffer::validateSelf() noexcept
 {
-    if (handle == 0 || !isBound())
+    if (m_handle == 0 || !isBound())
     {
-        warning("Framebuffer not bound or null in Framebuffer::validateSelf()!");
-        validationOk = false;
+        warn("Framebuffer not bound or null in Framebuffer::validateSelf()!");
+        m_validationOk = false;
         return;
     }
 
     const GLenum status = GLProxy::glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status == GL_FRAMEBUFFER_COMPLETE)
     {
-        validationOk = true;
+        m_validationOk = true;
         return;
     }
 
     switch (status)
     {
-    case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT :
-        warning("Framebuffer error: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+    case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+        warn("Framebuffer error: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
         break;
 
-    case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT :
-        warning("Framebuffer error: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
+    case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+        warn("Framebuffer error: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
         break;
 
-    case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER :
-        warning("Framebuffer error: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER");
+    case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+        warn("Framebuffer error: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER");
         break;
 
-    case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER :
-        warning("Framebuffer error: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER");
+    case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+        warn("Framebuffer error: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER");
         break;
 
-    case GL_FRAMEBUFFER_UNSUPPORTED :
-        warning("Framebuffer error: GL_FRAMEBUFFER_UNSUPPORTED");
+    case GL_FRAMEBUFFER_UNSUPPORTED:
+        warn("Framebuffer error: GL_FRAMEBUFFER_UNSUPPORTED");
         break;
 
-    case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE :
-        warning("Framebuffer error: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE");
+    case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+        warn("Framebuffer error: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE");
         break;
 
-    case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS :
-        warning("Framebuffer error: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS");
+    case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+        warn("Framebuffer error: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS");
         break;
 
-    default :
-        warning("Unknown Framebuffer status: " + std::to_string(status));
+    default:
+        warn("Unknown Framebuffer status: %u", status);
         break;
     } // switch (status)
 
-    validationOk = false;
+    m_validationOk = false;
 }
 
 void Framebuffer::freeGLRenderTargets() noexcept
 {
-    bindGLTexture(GL_TEXTURE_2D, 0);
-    GLProxy::glDeleteTextures(RTCount, renderTargets.data());
-    renderTargets.fill(0);
+    GLUtil::bindGLTexture(GL_TEXTURE_2D, 0);
+    GLProxy::glDeleteTextures(kRTCount, m_renderTargets.data());
+    m_renderTargets.fill(0);
 }
 
 void Framebuffer::releaseGLHandles() noexcept
 {
-    if (handle != 0)
+    if (m_handle != 0)
     {
-        if (handle == currentFbo)
+        if (m_handle == sm_currentFbo)
         {
             bindNull();
         }
 
-        GLProxy::glDeleteFramebuffers(1, & handle);
-        validationOk = false;
-        handle = 0;
+        GLProxy::glDeleteFramebuffers(1, &m_handle);
+        m_validationOk = false;
+        m_handle = 0;
 
         freeGLRenderTargets();
     }
@@ -245,92 +245,92 @@ void Framebuffer::releaseGLHandles() noexcept
 
 void Framebuffer::invalidate() noexcept
 {
-    handle        =  0;
-    width         = -1;
-    height        = -1;
-    validationOk  = false;
-    renderTargets.fill(0);
+    m_handle = 0;
+    m_width  = -1;
+    m_height = -1;
+    m_validationOk = false;
+    m_renderTargets.fill(0);
 }
 
 void Framebuffer::bind() const noexcept
 {
     if (!isValid())
     {
-        warning("Trying to bind an invalid Framebuffer!");
+        warn("Trying to bind an invalid Framebuffer!");
         bindNull();
         return;
     }
 
-    if (handle != currentFbo)
+    if (m_handle != sm_currentFbo)
     {
-        currentFbo = handle;
-        GLProxy::glBindFramebuffer(GL_FRAMEBUFFER, handle);
+        sm_currentFbo = m_handle;
+        GLProxy::glBindFramebuffer(GL_FRAMEBUFFER, m_handle);
     }
 }
 
-void Framebuffer::bindRenderTargetTexture(const RenderTarget rtId, const int tmu) const noexcept
+void Framebuffer::bindRenderTargetTexture(const RenderTargetId rtId, const int tmu) const noexcept
 {
-    if (renderTargets[static_cast<int>(rtId)] == 0)
+    if (m_renderTargets[rtId] == 0)
     {
-        warning("RenderTarget texture index is null!");
+        warn("RenderTarget texture index is null!");
     }
-    bindGLTexture(GL_TEXTURE_2D, renderTargets[static_cast<int>(rtId)], tmu);
+    GLUtil::bindGLTexture(GL_TEXTURE_2D, m_renderTargets[rtId], tmu);
 }
 
 void Framebuffer::bindNull() noexcept
 {
-    currentFbo = 0;
+    sm_currentFbo = 0;
     GLProxy::glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-bool Framebuffer::savePng(const std::string & filename, const RenderTarget rtId) const
+bool Framebuffer::savePng(const std::string& filename, const RenderTargetId rtId) const
 {
     return saveImageHelper(filename, rtId, &Image::savePng);
 }
 
-bool Framebuffer::saveTga(const std::string & filename, const RenderTarget rtId) const
+bool Framebuffer::saveTga(const std::string& filename, const RenderTargetId rtId) const
 {
     return saveImageHelper(filename, rtId, &Image::saveTga);
 }
 
-bool Framebuffer::saveImageHelper(const std::string & filename, const RenderTarget rtId,
-                                  bool (Image::*saveMethod)(const std::string &) const) const
+bool Framebuffer::saveImageHelper(const std::string& filename, const RenderTargetId rtId,
+                                  bool (Image::*saveMethod)(const std::string&) const) const
 {
     if (!isBound() || !isValid())
     {
-        warning("Can't save invalid/unbound Framebuffer to file!");
+        warn("Can't save invalid/unbound Framebuffer to file!");
         return false;
     }
 
-    const UInt maxBytesPerPixel = 4; // RGBA is the largest format
-    const std::size_t sizeBytes = width * height * maxBytesPerPixel;
+    const unsigned maxBytesPerPixel = 4; // RGBA is the largest format
+    const std::size_t sizeBytes = m_width * m_height * maxBytesPerPixel;
 
     Image::PixelFormat imageFmt;
     Image::PixelBuffer pixBuf(sizeBytes);
 
-    if (rtId != RenderTarget::DepthBuffer)
+    if (rtId != kDepthBuffer)
     {
-        imageFmt = Image::PixelFormat::RGBA_8888;
-        setGLPixelAlignment(GL_PACK_ALIGNMENT, width, 4);
+        imageFmt = Image::PixelFormat::kRGBA_8888;
+        GLUtil::setGLPixelAlignment(GL_PACK_ALIGNMENT, m_width, 4);
 
-        bindGLTexture(GL_TEXTURE_2D, renderTargets[static_cast<int>(rtId)]);
+        GLUtil::bindGLTexture(GL_TEXTURE_2D, m_renderTargets[rtId]);
         GLProxy::glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixBuf.data());
-        bindGLTexture(GL_TEXTURE_2D, 0);
+        GLUtil::bindGLTexture(GL_TEXTURE_2D, 0);
     }
     else
     {
-        imageFmt = Image::PixelFormat::Grayscale;
-        setGLPixelAlignment(GL_PACK_ALIGNMENT, width, 1);
+        imageFmt = Image::PixelFormat::kGrayscale;
+        GLUtil::setGLPixelAlignment(GL_PACK_ALIGNMENT, m_width, 1);
 
         // Use glReadPixels because it provides automatic
         // conversion from the depth format to grayscale.
-        GLProxy::glReadPixels(0, 0, width, height, GL_DEPTH_COMPONENT,
+        GLProxy::glReadPixels(0, 0, m_width, m_height, GL_DEPTH_COMPONENT,
                               GL_UNSIGNED_BYTE, pixBuf.data());
     }
 
     GLPROXY_CHECK_GL_ERRORS();
 
-    Image img{ std::move(pixBuf), imageFmt, Image::TargetUsage::Texture2D, 0, width, height, 0 };
+    Image img{ std::move(pixBuf), imageFmt, Image::TargetUsage::kTexture2D, 0, m_width, m_height, 0 };
     return (img.*saveMethod)(filename);
 }
 
@@ -338,7 +338,7 @@ bool Framebuffer::saveImageHelper(const std::string & filename, const RenderTarg
 // class FramebufferManager:
 // ========================================================
 
-FramebufferManager * FramebufferManager::sharedInstance{ nullptr };
+FramebufferManager* FramebufferManager::sm_sharedInstance{ nullptr };
 
 FramebufferManager::FramebufferManager()
 {
@@ -348,16 +348,17 @@ FramebufferManager::FramebufferManager()
 void FramebufferManager::onFrameStarted(const int scrW, const int scrH)
 {
     // First run or screen resolution changed? Recreate the FB.
-    if (framebuffer == nullptr || framebuffer->getWidth() != scrW || framebuffer->getHeight() != scrH)
+    if (m_framebuffer == nullptr || m_framebuffer->getWidth() != scrW || m_framebuffer->getHeight() != scrH)
     {
         // Make sure the current is freed first to
         // avoid having both in memory at the same time.
-        framebuffer = nullptr;
+        m_framebuffer = nullptr;
 
         if (scrW > 0 && scrH > 0)
         {
-            framebuffer = std::make_unique<Framebuffer>(scrW, scrH, true,
-                        Image::Filter::Bilinear, Image::Filter::Nearest);
+            m_framebuffer = std::make_unique<Framebuffer>(scrW, scrH, true,
+                                                          Image::Filter::kBilinear,
+                                                          Image::Filter::kNearest);
         }
         else
         {
@@ -366,12 +367,12 @@ void FramebufferManager::onFrameStarted(const int scrW, const int scrH)
         }
     }
 
-    framebuffer->bind();
+    m_framebuffer->bind();
 }
 
 void FramebufferManager::onFrameEnded()
 {
-    if (framebuffer == nullptr)
+    if (m_framebuffer == nullptr)
     {
         return;
     }
@@ -383,20 +384,20 @@ void FramebufferManager::onFrameEnded()
 void FramebufferManager::presentColorBuffer()
 {
     //TODO TEMP testing
-    const auto & sp = ShaderProgramManager::getInstance().getShader(ShaderProgramManager::ShaderId::FramePostProcess);
+    const auto& sp = ShaderProgramManager::getInstance().getShader(ShaderProgramManager::kFramePostProcess);
     sp.bind();
 
     sp.setUniform1i(sp.getUniformLocation("u_ColorRenderTarget"), 0);
-    framebuffer->bindRenderTargetTexture(Framebuffer::RenderTarget::ColorBuffer, 0);
+    m_framebuffer->bindRenderTargetTexture(Framebuffer::kColorBuffer, 0);
 
-    drawNdcQuadrilateral();
+    drawFullscreenQuadrilateral();
     GLPROXY_CHECK_GL_ERRORS();
     ShaderProgram::bindNull();
 
-    bindGLTexture(GL_TEXTURE_2D, 0, 0);
+    GLUtil::bindGLTexture(GL_TEXTURE_2D, 0, 0);
 }
 
-void FramebufferManager::drawNdcQuadrilateral()
+void FramebufferManager::drawFullscreenQuadrilateral()
 {
     GLProxy::glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     GLProxy::glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
@@ -405,7 +406,7 @@ void FramebufferManager::drawNdcQuadrilateral()
     GLProxy::glDisable(GL_DEPTH_TEST);
     GLProxy::glDisable(GL_BLEND);
 
-    static const float verts[]{
+    static const float s_verts[] = {
         // First triangle:
          1.0,  1.0,
         -1.0,  1.0,
@@ -413,14 +414,14 @@ void FramebufferManager::drawNdcQuadrilateral()
         // Second triangle:
         -1.0, -1.0,
          1.0, -1.0,
-         1.0,  1.0
+         1.0,  1.0,
     };
 
-    GLProxy::glVertexPointer(2, GL_FLOAT, 0, verts);
+    GLProxy::glVertexPointer(2, GL_FLOAT, 0, s_verts);
     GLProxy::glDrawArrays(GL_TRIANGLES, 0, 6);
 
     GLProxy::glPopClientAttrib();
     GLProxy::glPopAttrib();
 }
 
-} // namespace War3 {}
+} // namespace War3

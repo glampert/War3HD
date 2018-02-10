@@ -17,6 +17,12 @@
     <Filter Include="Source Files\Shaders">
       <UniqueIdentifier>{c4eeddba-d142-45ce-a88d-7ef5b3370590}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\External\Detours">
+      <UniqueIdentifier>{403520d4-7f23-41b0-aa08-c81c4ae22078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\External\STB">
+      <UniqueIdentifier>{05f6413d-faa7-41c4-b89c-dd9256a1b5b0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\War3\Image.cpp">
@@ -29,6 +35,51 @@
       <Filter>Source Files\War3</Filter>
     </ClCompile>
     <ClCompile Include="..\Source\War3\Framebuffer.cpp">
+      <Filter>Source Files\War3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\War3\Common.cpp">
+      <Filter>Source Files\War3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\External\detours\detours.cpp">
+      <Filter>Source Files\External\Detours</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\External\detours\disasm.cpp">
+      <Filter>Source Files\External\Detours</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\External\detours\disolarm.cpp">
+      <Filter>Source Files\External\Detours</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\External\detours\disolarm64.cpp">
+      <Filter>Source Files\External\Detours</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\External\detours\disolia64.cpp">
+      <Filter>Source Files\External\Detours</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\External\detours\disolx64.cpp">
+      <Filter>Source Files\External\Detours</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\External\detours\disolx86.cpp">
+      <Filter>Source Files\External\Detours</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\External\detours\dtimage.cpp">
+      <Filter>Source Files\External\Detours</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\External\detours\dtmodules.cpp">
+      <Filter>Source Files\External\Detours</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\External\detours\dtcreatwth.cpp">
+      <Filter>Source Files\External\Detours</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\War3\Window.cpp">
+      <Filter>Source Files\War3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\GLProxy\GLExtensions.cpp">
+      <Filter>Source Files\GLProxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\GLProxy\GLDllUtils.cpp">
+      <Filter>Source Files\GLProxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\War3\Renderer.cpp">
       <Filter>Source Files\War3</Filter>
     </ClCompile>
   </ItemGroup>
@@ -51,14 +102,29 @@
     <ClInclude Include="..\Source\War3\Framebuffer.hpp">
       <Filter>Source Files\War3</Filter>
     </ClInclude>
-    <ClInclude Include="..\Source\External\stb\stb_image_write.h">
-      <Filter>Source Files\External</Filter>
-    </ClInclude>
     <ClInclude Include="..\Source\Shaders\FXAA.h">
       <Filter>Source Files\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="..\Source\Shaders\HDR.h">
       <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\External\stb\stb_image_write.h">
+      <Filter>Source Files\External\STB</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\External\detours\detours.h">
+      <Filter>Source Files\External\Detours</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\External\detours\detver.h">
+      <Filter>Source Files\External\Detours</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\War3\Window.hpp">
+      <Filter>Source Files\War3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\GLProxy\GLDllUtils.hpp">
+      <Filter>Source Files\GLProxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\War3\Renderer.hpp">
+      <Filter>Source Files\War3</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

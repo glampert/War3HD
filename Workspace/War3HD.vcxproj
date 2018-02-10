@@ -19,10 +19,25 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Source\External\detours\dtcreatwth.cpp" />
+    <ClCompile Include="..\Source\External\detours\detours.cpp" />
+    <ClCompile Include="..\Source\External\detours\disasm.cpp" />
+    <ClCompile Include="..\Source\External\detours\disolarm.cpp" />
+    <ClCompile Include="..\Source\External\detours\disolarm64.cpp" />
+    <ClCompile Include="..\Source\External\detours\disolia64.cpp" />
+    <ClCompile Include="..\Source\External\detours\disolx64.cpp" />
+    <ClCompile Include="..\Source\External\detours\disolx86.cpp" />
+    <ClCompile Include="..\Source\External\detours\dtimage.cpp" />
+    <ClCompile Include="..\Source\External\detours\dtmodules.cpp" />
+    <ClCompile Include="..\Source\GLProxy\GLDllUtils.cpp" />
+    <ClCompile Include="..\Source\GLProxy\GLExtensions.cpp" />
     <ClCompile Include="..\Source\GLProxy\Opengl32.cpp" />
+    <ClCompile Include="..\Source\War3\Common.cpp" />
     <ClCompile Include="..\Source\War3\Framebuffer.cpp" />
     <ClCompile Include="..\Source\War3\Image.cpp" />
+    <ClCompile Include="..\Source\War3\Renderer.cpp" />
     <ClCompile Include="..\Source\War3\ShaderProgram.cpp" />
+    <ClCompile Include="..\Source\War3\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Source\GLProxy\Opengl32.def" />
@@ -32,7 +47,10 @@
     <None Include="..\Source\Shaders\Test.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Source\External\detours\detours.h" />
+    <ClInclude Include="..\Source\External\detours\detver.h" />
     <ClInclude Include="..\Source\External\stb\stb_image_write.h" />
+    <ClInclude Include="..\Source\GLProxy\GLDllUtils.hpp" />
     <ClInclude Include="..\Source\GLProxy\GLEnums.hpp" />
     <ClInclude Include="..\Source\GLProxy\GLExtensions.hpp" />
     <ClInclude Include="..\Source\Shaders\FXAA.h" />
@@ -40,13 +58,16 @@
     <ClInclude Include="..\Source\War3\Common.hpp" />
     <ClInclude Include="..\Source\War3\Framebuffer.hpp" />
     <ClInclude Include="..\Source\War3\Image.hpp" />
+    <ClInclude Include="..\Source\War3\Renderer.hpp" />
     <ClInclude Include="..\Source\War3\ShaderProgram.hpp" />
+    <ClInclude Include="..\Source\War3\Window.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{307C0FE7-03A6-4A70-ACFB-1FF2DB186F5A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>War3HD</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>War3HD_DLL</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -131,6 +152,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>$(SolutionDir)..\Source\GLProxy\Opengl32.def</ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>call "$(SolutionDir)Makelink.bat"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>"Running Makelink.bat ..."</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -146,6 +173,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>$(SolutionDir)..\Source\GLProxy\Opengl32.def</ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>call "$(SolutionDir)Makelink.bat"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>"Running Makelink.bat ..."</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -165,6 +198,12 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>$(SolutionDir)..\Source\GLProxy\Opengl32.def</ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>call "$(SolutionDir)Makelink.bat"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>"Running Makelink.bat ..."</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -184,6 +223,12 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>$(SolutionDir)..\Source\GLProxy\Opengl32.def</ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>call "$(SolutionDir)Makelink.bat"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>"Running Makelink.bat ..."</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

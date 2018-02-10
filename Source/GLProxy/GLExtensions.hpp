@@ -1,28 +1,34 @@
 
-// ================================================================================================
-// -*- C++ -*-
-// File: GLExtensions.hpp
+#pragma once
+
+// ============================================================================
+// File:   GLExtensions.hpp
 // Author: Guilherme R. Lampert
-// Created on: 26/11/15
-// Brief: Pointers to extended functions in the real opengl32.dll
-// ================================================================================================
+// Brief:  Pointers to extended functions in the real opengl32.dll
+// ============================================================================
 
-#ifndef GLPROXY_GL_EXTENSIONS_HPP
-#define GLPROXY_GL_EXTENSIONS_HPP
-
-// GL types and constants:
+#include "War3/Common.hpp"
 #include "GLProxy/GLEnums.hpp"
 
 // Trim down the WinAPI crap. We also don't want WinGDI.h
 // to interfere with our WGL wrapper declarations.
 #define NOGDI
+#define NOMINMAX
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-// Extended GL functions will be members of this namespace.
+// Strips out the proxy DLL log when zero.
+#define GLPROXY_WITH_LOG 1
+
+// We are not including 'WinGDI.h' and 'gl.h', so the
+// required types must be redefined in this source file.
+#define GLPROXY_NEED_WGL_STRUCTS 1
+
 namespace GLProxy
 {
+
+// ========================================================
 
 // These are direct pointers to the actual OpenGL library:
 extern pfn_glDisable                    glDisable;
@@ -92,16 +98,34 @@ extern pfn_glNormalPointer              glNormalPointer;
 // until this is called at least once! Calling this if already initialized is a no-op.
 void initializeExtensions();
 
-//
-// glGetError helpers:
-//
-#define GLPROXY_CHECK_GL_ERRORS() GLProxy::checkGLErrors(__FUNCTION__, __FILE__, __LINE__, false)
-void checkGLErrors(const char * function, const char * filename, int lineNum, bool crash);
+// ========================================================
 
-} // namespace GLProxy {}
+// glGetError helpers:
+void checkGLErrors(const char* function, const char* filename, int lineNum, bool crash);
+#define GLPROXY_CHECK_GL_ERRORS() GLProxy::checkGLErrors(__FUNCTION__, __FILE__, __LINE__, false)
+
+// Proxy DLL fatal error reporter.
+WAR3_ATTRIB_NORETURN
+WAR3_ATTRIB_NOINLINE
+void fatalError(WAR3_PRINTF_LIKE const char* fmt, ...);
+
+// GL proxy DLL log wrapper (can be muted at compile-time)
+#if GLPROXY_WITH_LOG
+    War3::LogStream& getProxyDllLogStream();
+    #define GLPROXY_LOG(fmt, ...)                        \
+        do {                                             \
+            auto& log = GLProxy::getProxyDllLogStream(); \
+            log.writeF(fmt, __VA_ARGS__);                \
+            log.write('\n');                             \
+        } while (0,0)
+#else // GLPROXY_WITH_LOG
+    #define GLPROXY_LOG(fmt, ...) /* nothing */
+#endif // GLPROXY_WITH_LOG
+
+// ========================================================
+
+} // namespace GLProxy
 
 // Our wrapper for the real wglGetProcAddress.
 // Also used to get pointers to the extended functions we inject into War3.
 GLPROXY_EXTERN PROC GLPROXY_DECL wglGetProcAddress(LPCSTR funcName);
-
-#endif // GLPROXY_GL_EXTENSIONS_HPP

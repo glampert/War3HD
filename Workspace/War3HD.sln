@@ -1,9 +1,25 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "War3HD", "War3HD.vcxproj", "{307C0FE7-03A6-4A70-ACFB-1FF2DB186F5A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "War3HD_DLL", "War3HD.vcxproj", "{307C0FE7-03A6-4A70-ACFB-1FF2DB186F5A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Warcraft3_EXE", "Warcraft3_EXE", "{47786733-28AC-48B6-8428-C5CC38EC1AD3}"
+EndProject
+Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "war3", "..\..\..\Warcraft-III-RoC\war3.exe", "{E2048FD4-C532-48E4-9CBC-6BECAB0A5F0E}"
+	ProjectSection(DebuggerProjectSystem) = preProject
+		PortSupplier = 00000000-0000-0000-0000-000000000000
+		Executable = C:\Users\Lampert\Documents\Warcraft-III-RoC\war3.exe
+		RemoteMachine = MACBOOK-LAMPERT
+		StartingDirectory = C:\Users\Lampert\Documents\Warcraft-III-RoC
+		Arguments = -opengl
+		Environment = Default
+		LaunchingEngine = 00000000-0000-0000-0000-000000000000
+		UseLegacyDebugEngines = No
+		LaunchSQLEngine = No
+		AttachLaunchAction = No
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +37,15 @@ Global
 		{307C0FE7-03A6-4A70-ACFB-1FF2DB186F5A}.Release|x64.Build.0 = Release|x64
 		{307C0FE7-03A6-4A70-ACFB-1FF2DB186F5A}.Release|x86.ActiveCfg = Release|Win32
 		{307C0FE7-03A6-4A70-ACFB-1FF2DB186F5A}.Release|x86.Build.0 = Release|Win32
+		{E2048FD4-C532-48E4-9CBC-6BECAB0A5F0E}.Debug|x64.ActiveCfg = Release|x86
+		{E2048FD4-C532-48E4-9CBC-6BECAB0A5F0E}.Debug|x86.ActiveCfg = Release|x86
+		{E2048FD4-C532-48E4-9CBC-6BECAB0A5F0E}.Release|x64.ActiveCfg = Release|x86
+		{E2048FD4-C532-48E4-9CBC-6BECAB0A5F0E}.Release|x86.ActiveCfg = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E2048FD4-C532-48E4-9CBC-6BECAB0A5F0E} = {47786733-28AC-48B6-8428-C5CC38EC1AD3}
 	EndGlobalSection
 EndGlobal

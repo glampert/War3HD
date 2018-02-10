@@ -361,4 +361,3 @@ EXPORTS
     wglUseFontBitmapsA
     wglUseFontBitmapsW
     wglUseFontOutlinesA
-
