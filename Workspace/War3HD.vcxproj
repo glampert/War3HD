@@ -29,10 +29,16 @@
     <ClCompile Include="..\Source\External\detours\disolx86.cpp" />
     <ClCompile Include="..\Source\External\detours\dtimage.cpp" />
     <ClCompile Include="..\Source\External\detours\dtmodules.cpp" />
+    <ClCompile Include="..\Source\External\imgui\imgui.cpp" />
+    <ClCompile Include="..\Source\External\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\Source\External\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="..\Source\External\imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\Source\External\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\Source\GLProxy\GLDllUtils.cpp" />
     <ClCompile Include="..\Source\GLProxy\GLExtensions.cpp" />
     <ClCompile Include="..\Source\GLProxy\Opengl32.cpp" />
     <ClCompile Include="..\Source\War3\Common.cpp" />
+    <ClCompile Include="..\Source\War3\DebugUI.cpp" />
     <ClCompile Include="..\Source\War3\Framebuffer.cpp" />
     <ClCompile Include="..\Source\War3\Image.cpp" />
     <ClCompile Include="..\Source\War3\Renderer.cpp" />
@@ -45,10 +51,19 @@
     <None Include="..\Source\Shaders\FramePostProcess.vert" />
     <None Include="..\Source\Shaders\Test.frag" />
     <None Include="..\Source\Shaders\Test.vert" />
+    <None Include="Makelink.bat" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\External\detours\detours.h" />
     <ClInclude Include="..\Source\External\detours\detver.h" />
+    <ClInclude Include="..\Source\External\imgui\imconfig.h" />
+    <ClInclude Include="..\Source\External\imgui\imgui.h" />
+    <ClInclude Include="..\Source\External\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="..\Source\External\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="..\Source\External\imgui\imgui_internal.h" />
+    <ClInclude Include="..\Source\External\imgui\imstb_rectpack.h" />
+    <ClInclude Include="..\Source\External\imgui\imstb_textedit.h" />
+    <ClInclude Include="..\Source\External\imgui\imstb_truetype.h" />
     <ClInclude Include="..\Source\External\stb\stb_image_write.h" />
     <ClInclude Include="..\Source\GLProxy\GLDllUtils.hpp" />
     <ClInclude Include="..\Source\GLProxy\GLEnums.hpp" />
@@ -56,6 +71,7 @@
     <ClInclude Include="..\Source\Shaders\FXAA.h" />
     <ClInclude Include="..\Source\Shaders\HDR.h" />
     <ClInclude Include="..\Source\War3\Common.hpp" />
+    <ClInclude Include="..\Source\War3\DebugUI.hpp" />
     <ClInclude Include="..\Source\War3\Framebuffer.hpp" />
     <ClInclude Include="..\Source\War3\Image.hpp" />
     <ClInclude Include="..\Source\War3\Renderer.hpp" />

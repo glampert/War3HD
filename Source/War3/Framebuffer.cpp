@@ -50,7 +50,7 @@ Framebuffer::Framebuffer(const int w, const int h, const bool withDepthBuffer,
     , m_validationOk{ false }
 {
     m_renderTargets.fill(0);
-    GLProxy::initializeExtensions();
+    GLProxy::loadInternalGLFunctions();
 
     if (w <= 0 || h <= 0)
     {

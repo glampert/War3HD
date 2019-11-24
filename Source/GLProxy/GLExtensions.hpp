@@ -30,73 +30,104 @@ namespace GLProxy
 
 // ========================================================
 
-// These are direct pointers to the actual OpenGL library:
-extern pfn_glDisable                    glDisable;
-extern pfn_glEnable                     glEnable;
-extern pfn_glPushAttrib                 glPushAttrib;
-extern pfn_glPopAttrib                  glPopAttrib;
-extern pfn_glPushClientAttrib           glPushClientAttrib;
-extern pfn_glPopClientAttrib            glPopClientAttrib;
-extern pfn_glGetString                  glGetString;
-extern pfn_glGetError                   glGetError;
-extern pfn_glGetIntegerv                glGetIntegerv;
-extern pfn_glViewport                   glViewport;
-extern pfn_glReadBuffer                 glReadBuffer;
-extern pfn_glReadPixels                 glReadPixels;
-extern pfn_glCreateProgram              glCreateProgram;
-extern pfn_glCreateShader               glCreateShader;
-extern pfn_glAttachShader               glAttachShader;
-extern pfn_glCompileShader              glCompileShader;
-extern pfn_glDeleteProgram              glDeleteProgram;
-extern pfn_glDeleteShader               glDeleteShader;
-extern pfn_glDetachShader               glDetachShader;
-extern pfn_glLinkProgram                glLinkProgram;
-extern pfn_glShaderSource               glShaderSource;
-extern pfn_glUseProgram                 glUseProgram;
-extern pfn_glGetProgramInfoLog          glGetProgramInfoLog;
-extern pfn_glGetShaderInfoLog           glGetShaderInfoLog;
-extern pfn_glGetProgramiv               glGetProgramiv;
-extern pfn_glGetShaderiv                glGetShaderiv;
-extern pfn_glGetUniformLocation         glGetUniformLocation;
-extern pfn_glUniform1f                  glUniform1f;
-extern pfn_glUniform2f                  glUniform2f;
-extern pfn_glUniform3f                  glUniform3f;
-extern pfn_glUniform4f                  glUniform4f;
-extern pfn_glUniform1i                  glUniform1i;
-extern pfn_glUniform2i                  glUniform2i;
-extern pfn_glUniform3i                  glUniform3i;
-extern pfn_glUniform4i                  glUniform4i;
-extern pfn_glUniformMatrix3fv           glUniformMatrix3fv;
-extern pfn_glUniformMatrix4fv           glUniformMatrix4fv;
-extern pfn_glBindTexture                glBindTexture;
-extern pfn_glActiveTexture              glActiveTexture;
-extern pfn_glGenTextures                glGenTextures;
-extern pfn_glDeleteTextures             glDeleteTextures;
-extern pfn_glTexStorage2D               glTexStorage2D;
-extern pfn_glTexParameteri              glTexParameteri;
-extern pfn_glTexParameterf              glTexParameterf;
-extern pfn_glPixelStorei                glPixelStorei;
-extern pfn_glGetTexImage                glGetTexImage;
-extern pfn_glGenerateMipmap             glGenerateMipmap;
-extern pfn_glIsFramebuffer              glIsFramebuffer;
-extern pfn_glBindFramebuffer            glBindFramebuffer;
-extern pfn_glDeleteFramebuffers         glDeleteFramebuffers;
-extern pfn_glGenFramebuffers            glGenFramebuffers;
-extern pfn_glCheckFramebufferStatus     glCheckFramebufferStatus;
-extern pfn_glFramebufferTexture2D       glFramebufferTexture2D;
-extern pfn_glBlitFramebuffer            glBlitFramebuffer;
-extern pfn_glDrawArrays                 glDrawArrays;
-extern pfn_glDrawElements               glDrawElements;
-extern pfn_glEnableClientState          glEnableClientState;
-extern pfn_glDisableClientState         glDisableClientState;
-extern pfn_glVertexPointer              glVertexPointer;
-extern pfn_glColorPointer               glColorPointer;
-extern pfn_glTexCoordPointer            glTexCoordPointer;
-extern pfn_glNormalPointer              glNormalPointer;
+// These are direct pointers to the actual OpenGL library
+#define GLPROXY_FUNCTION_POINTERS_LIST(FUNC_PTR) \
+    FUNC_PTR(glDisable)                          \
+    FUNC_PTR(glEnable)                           \
+    FUNC_PTR(glIsEnabled)                        \
+    FUNC_PTR(glPushAttrib)                       \
+    FUNC_PTR(glPopAttrib)                        \
+    FUNC_PTR(glPushClientAttrib)                 \
+    FUNC_PTR(glPopClientAttrib)                  \
+    FUNC_PTR(glGetString)                        \
+    FUNC_PTR(glGetError)                         \
+    FUNC_PTR(glGetIntegerv)                      \
+    FUNC_PTR(glViewport)                         \
+    FUNC_PTR(glReadBuffer)                       \
+    FUNC_PTR(glReadPixels)                       \
+    FUNC_PTR(glCreateProgram)                    \
+    FUNC_PTR(glCreateShader)                     \
+    FUNC_PTR(glAttachShader)                     \
+    FUNC_PTR(glCompileShader)                    \
+    FUNC_PTR(glDeleteProgram)                    \
+    FUNC_PTR(glDeleteShader)                     \
+    FUNC_PTR(glDetachShader)                     \
+    FUNC_PTR(glLinkProgram)                      \
+    FUNC_PTR(glShaderSource)                     \
+    FUNC_PTR(glUseProgram)                       \
+    FUNC_PTR(glGetProgramInfoLog)                \
+    FUNC_PTR(glGetShaderInfoLog)                 \
+    FUNC_PTR(glGetProgramiv)                     \
+    FUNC_PTR(glGetShaderiv)                      \
+    FUNC_PTR(glGetUniformLocation)               \
+    FUNC_PTR(glUniform1f)                        \
+    FUNC_PTR(glUniform2f)                        \
+    FUNC_PTR(glUniform3f)                        \
+    FUNC_PTR(glUniform4f)                        \
+    FUNC_PTR(glUniform1i)                        \
+    FUNC_PTR(glUniform2i)                        \
+    FUNC_PTR(glUniform3i)                        \
+    FUNC_PTR(glUniform4i)                        \
+    FUNC_PTR(glUniformMatrix3fv)                 \
+    FUNC_PTR(glUniformMatrix4fv)                 \
+    FUNC_PTR(glBindTexture)                      \
+    FUNC_PTR(glActiveTexture)                    \
+    FUNC_PTR(glGenTextures)                      \
+    FUNC_PTR(glDeleteTextures)                   \
+    FUNC_PTR(glTexStorage2D)                     \
+    FUNC_PTR(glTexImage2D)                       \
+    FUNC_PTR(glTexParameteri)                    \
+    FUNC_PTR(glTexParameterf)                    \
+    FUNC_PTR(glPixelStorei)                      \
+    FUNC_PTR(glGetTexImage)                      \
+    FUNC_PTR(glGenerateMipmap)                   \
+    FUNC_PTR(glIsFramebuffer)                    \
+    FUNC_PTR(glBindFramebuffer)                  \
+    FUNC_PTR(glDeleteFramebuffers)               \
+    FUNC_PTR(glGenFramebuffers)                  \
+    FUNC_PTR(glCheckFramebufferStatus)           \
+    FUNC_PTR(glFramebufferTexture2D)             \
+    FUNC_PTR(glBlitFramebuffer)                  \
+    FUNC_PTR(glDrawArrays)                       \
+    FUNC_PTR(glDrawElements)                     \
+    FUNC_PTR(glEnableClientState)                \
+    FUNC_PTR(glDisableClientState)               \
+    FUNC_PTR(glVertexPointer)                    \
+    FUNC_PTR(glColorPointer)                     \
+    FUNC_PTR(glTexCoordPointer)                  \
+    FUNC_PTR(glNormalPointer)                    \
+    FUNC_PTR(glBlendFunc)                        \
+    FUNC_PTR(glPolygonMode)                      \
+    FUNC_PTR(glScissor)                          \
+    FUNC_PTR(glLoadIdentity)                     \
+    FUNC_PTR(glMatrixMode)                       \
+    FUNC_PTR(glPushMatrix)                       \
+    FUNC_PTR(glPopMatrix)                        \
+    FUNC_PTR(glOrtho)                            \
+    FUNC_PTR(glBlendEquation)                    \
+    FUNC_PTR(glBindVertexArray)                  \
+    FUNC_PTR(glBindBuffer)                       \
+    FUNC_PTR(glEnableVertexAttribArray)          \
+    FUNC_PTR(glVertexAttribPointer)              \
+    FUNC_PTR(glGenVertexArrays)                  \
+    FUNC_PTR(glDeleteVertexArrays)               \
+    FUNC_PTR(glBufferData)                       \
+    FUNC_PTR(glBlendEquationSeparate)            \
+    FUNC_PTR(glBlendFuncSeparate)                \
+    FUNC_PTR(glGetAttribLocation)                \
+    FUNC_PTR(glGenBuffers)                       \
+    FUNC_PTR(glDeleteBuffers)                    \
+    FUNC_PTR(glDrawElementsBaseVertex)           \
+    FUNC_PTR(glClearColor)                       \
+    FUNC_PTR(glClear)
+
+#define GL_FUNC_PTR_EXTERN(funcName) extern WAR3_STRING_JOIN2(pfn_, funcName) funcName;
+    GLPROXY_FUNCTION_POINTERS_LIST(GL_FUNC_PTR_EXTERN)
+#undef GL_FUNC_PTR_EXTERN
 
 // Loads all the above function pointers from the real OpenGL DLL. They are null
 // until this is called at least once! Calling this if already initialized is a no-op.
-void initializeExtensions();
+void loadInternalGLFunctions();
 
 // ========================================================
 

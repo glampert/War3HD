@@ -23,6 +23,9 @@
     <Filter Include="Source Files\External\STB">
       <UniqueIdentifier>{05f6413d-faa7-41c4-b89c-dd9256a1b5b0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\External\ImGui">
+      <UniqueIdentifier>{09742f99-4f15-4b2b-948a-98773412347d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\War3\Image.cpp">
@@ -82,6 +85,24 @@
     <ClCompile Include="..\Source\War3\Renderer.cpp">
       <Filter>Source Files\War3</Filter>
     </ClCompile>
+    <ClCompile Include="..\Source\External\imgui\imgui.cpp">
+      <Filter>Source Files\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\External\imgui\imgui_draw.cpp">
+      <Filter>Source Files\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\External\imgui\imgui_widgets.cpp">
+      <Filter>Source Files\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\External\imgui\imgui_impl_opengl3.cpp">
+      <Filter>Source Files\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\War3\DebugUI.cpp">
+      <Filter>Source Files\War3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\External\imgui\imgui_impl_win32.cpp">
+      <Filter>Source Files\External\ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\War3\Image.hpp">
@@ -126,6 +147,33 @@
     <ClInclude Include="..\Source\War3\Renderer.hpp">
       <Filter>Source Files\War3</Filter>
     </ClInclude>
+    <ClInclude Include="..\Source\External\imgui\imgui.h">
+      <Filter>Source Files\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\External\imgui\imconfig.h">
+      <Filter>Source Files\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\External\imgui\imgui_internal.h">
+      <Filter>Source Files\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\External\imgui\imstb_rectpack.h">
+      <Filter>Source Files\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\External\imgui\imstb_textedit.h">
+      <Filter>Source Files\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\External\imgui\imstb_truetype.h">
+      <Filter>Source Files\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\External\imgui\imgui_impl_opengl3.h">
+      <Filter>Source Files\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\War3\DebugUI.hpp">
+      <Filter>Source Files\War3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\External\imgui\imgui_impl_win32.h">
+      <Filter>Source Files\External\ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Source\GLProxy\Opengl32.def">
@@ -142,6 +190,9 @@
     </None>
     <None Include="..\Source\Shaders\Test.vert">
       <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Makelink.bat">
+      <Filter>Source Files\GLProxy</Filter>
     </None>
   </ItemGroup>
 </Project>

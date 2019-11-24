@@ -13,6 +13,8 @@
 #define __gl_h_
 #define __GL_H__
 
+#include <stddef.h>
+
 /*
  * Calling convention used by OGL functions on Windows is stdcall.
  * OpenGL is also a C API, so the 'extern C' should be the correct approach.
@@ -45,6 +47,8 @@ typedef unsigned int   GLbitfield;
 typedef unsigned int   GLenum;
 typedef unsigned int   GLuint;
 typedef unsigned short GLushort;
+typedef ptrdiff_t      GLintptr;
+typedef ptrdiff_t      GLsizeiptr;
 
 /* -------------------------------------------------------- */
 
@@ -54,6 +58,7 @@ typedef unsigned short GLushort;
  */
 typedef void            (GLPROXY_DECL * pfn_glDisable)                   (GLenum cap);
 typedef void            (GLPROXY_DECL * pfn_glEnable)                    (GLenum cap);
+typedef GLboolean       (GLPROXY_DECL * pfn_glIsEnabled)                 (GLenum cap);
 typedef void            (GLPROXY_DECL * pfn_glPushAttrib)                (GLbitfield mask);
 typedef void            (GLPROXY_DECL * pfn_glPopAttrib)                 (void);
 typedef void            (GLPROXY_DECL * pfn_glPushClientAttrib)          (GLbitfield mask);
@@ -89,11 +94,13 @@ typedef void            (GLPROXY_DECL * pfn_glUniform3i)                 (GLint 
 typedef void            (GLPROXY_DECL * pfn_glUniform4i)                 (GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
 typedef void            (GLPROXY_DECL * pfn_glUniformMatrix3fv)          (GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
 typedef void            (GLPROXY_DECL * pfn_glUniformMatrix4fv)          (GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
+typedef GLint           (GLPROXY_DECL * pfn_glGetAttribLocation)         (GLuint program, const GLchar* name);
 typedef void            (GLPROXY_DECL * pfn_glBindTexture)               (GLenum target, GLuint texture);
 typedef void            (GLPROXY_DECL * pfn_glActiveTexture)             (GLenum texture);
 typedef void            (GLPROXY_DECL * pfn_glGenTextures)               (GLsizei n, GLuint * textures);
 typedef void            (GLPROXY_DECL * pfn_glDeleteTextures)            (GLsizei n, const GLuint * textures);
 typedef void            (GLPROXY_DECL * pfn_glTexStorage2D)              (GLenum target, GLsizei levels, GLenum format, GLsizei width, GLsizei height);
+typedef void            (GLPROXY_DECL * pfn_glTexImage2D)                (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void* pixels);
 typedef void            (GLPROXY_DECL * pfn_glTexParameteri)             (GLenum target, GLenum pname, GLint param);
 typedef void            (GLPROXY_DECL * pfn_glTexParameterf)             (GLenum target, GLenum pname, GLfloat param);
 typedef void            (GLPROXY_DECL * pfn_glPixelStorei)               (GLenum pname, GLint param);
@@ -122,8 +129,42 @@ typedef void            (GLPROXY_DECL * pfn_glNormalPointer)             (GLenum
 typedef void            (GLPROXY_DECL * pfn_glVertexAttribPointer)       (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void * pointer);
 typedef void            (GLPROXY_DECL * pfn_glDisableVertexAttribArray)  (GLuint index);
 typedef void            (GLPROXY_DECL * pfn_glEnableVertexAttribArray)   (GLuint index);
+typedef void            (GLPROXY_DECL * pfn_glBlendFunc)                 (GLenum sfactor, GLenum dfactor);
+typedef void            (GLPROXY_DECL * pfn_glPolygonMode)               (GLenum face, GLenum mode);
+typedef void            (GLPROXY_DECL * pfn_glScissor)                   (GLint x, GLint y, GLsizei width, GLsizei height);
+typedef void            (GLPROXY_DECL * pfn_glLoadIdentity)              (void);
+typedef void            (GLPROXY_DECL * pfn_glMatrixMode)                (GLenum mode);
+typedef void            (GLPROXY_DECL * pfn_glPushMatrix)                (void);
+typedef void            (GLPROXY_DECL * pfn_glPopMatrix)                 (void);
+typedef void            (GLPROXY_DECL * pfn_glOrtho)                     (GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar);
+typedef void            (GLPROXY_DECL * pfn_glBlendEquation)             (GLenum mode);
+typedef void            (GLPROXY_DECL * pfn_glBlendEquationSeparate)     (GLenum modeRGB, GLenum modeAlpha);
+typedef void            (GLPROXY_DECL * pfn_glBlendFuncSeparate)         (GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
+typedef void            (GLPROXY_DECL * pfn_glEnableVertexAttribArray)   (GLuint index);
+typedef void            (GLPROXY_DECL * pfn_glVertexAttribPointer)       (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* pointer);
+typedef void            (GLPROXY_DECL * pfn_glGenVertexArrays)           (GLsizei n, GLuint* arrays);
+typedef void            (GLPROXY_DECL * pfn_glDeleteVertexArrays)        (GLsizei n, const GLuint* arrays);
+typedef void            (GLPROXY_DECL * pfn_glBindVertexArray)           (GLuint array);
+typedef void            (GLPROXY_DECL * pfn_glGenBuffers)                (GLsizei n, GLuint* buffers);
+typedef void            (GLPROXY_DECL * pfn_glDeleteBuffers)             (GLsizei n, const GLuint* buffers);
+typedef void            (GLPROXY_DECL * pfn_glBindBuffer)                (GLenum target, GLuint buffer);
+typedef void            (GLPROXY_DECL * pfn_glBufferData)                (GLenum target, GLsizeiptr size, const void* data, GLenum usage);
+typedef void            (GLPROXY_DECL * pfn_glDrawElementsBaseVertex)    (GLenum mode, GLsizei count, GLenum type, const void *indices, GLint basevertex);
+typedef void            (GLPROXY_DECL * pfn_glClearColor)                (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
+typedef void            (GLPROXY_DECL * pfn_glClear)                     (GLbitfield mask);
 
 /* -------------------------------------------------------- */
+
+#define GL_ACTIVE_TEXTURE                 0x84E0
+#define GL_ARRAY_BUFFER_BINDING           0x8894
+#define GL_VERTEX_ARRAY_BINDING           0x85B5
+
+#define GL_BLEND_DST_RGB                  0x80C8
+#define GL_BLEND_SRC_RGB                  0x80C9
+#define GL_BLEND_DST_ALPHA                0x80CA
+#define GL_BLEND_SRC_ALPHA                0x80CB
+#define GL_BLEND_EQUATION_RGB             0x8009
+#define GL_BLEND_EQUATION_ALPHA           0x883D
 
     /* AccumOp */
 #define GL_ACCUM                          0x0100
@@ -141,6 +182,7 @@ typedef void            (GLPROXY_DECL * pfn_glEnableVertexAttribArray)   (GLuint
 #define GL_NOTEQUAL                       0x0205
 #define GL_GEQUAL                         0x0206
 #define GL_ALWAYS                         0x0207
+#define GL_FUNC_ADD                       0x8006
 
     /* AttribMask */
 #define GL_CURRENT_BIT                    0x00000001
@@ -955,6 +997,8 @@ typedef void            (GLPROXY_DECL * pfn_glEnableVertexAttribArray)   (GLuint
 #define GL_RENDERER                       0x1F01
 #define GL_VERSION                        0x1F02
 #define GL_EXTENSIONS                     0x1F03
+#define GL_MAJOR_VERSION                  0x821B
+#define GL_MINOR_VERSION                  0x821C
 
     /* TextureCoordName */
 #define GL_S                              0x2000

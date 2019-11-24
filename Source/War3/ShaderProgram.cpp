@@ -42,7 +42,7 @@ ShaderProgram::ShaderProgram(TextBuffer&& vsSrcText, TextBuffer&& fsSrcText, con
     : m_handle{ 0 }
     , m_linkedOk{ false }
 {
-    GLProxy::initializeExtensions();
+    GLProxy::loadInternalGLFunctions();
 
     if (vsSrcText == nullptr)
     {
@@ -523,7 +523,8 @@ ShaderProgramManager::ShaderProgramManager()
     info("---- ShaderProgramManager startup ----");
 
     // Warm up all the shaders we're going to need:
-    m_shaders[kFramePostProcess] = std::make_unique<ShaderProgram>("FramePostProcess.vert", "FramePostProcess.frag");
+    //m_shaders[kFramePostProcess] = std::make_unique<ShaderProgram>("FramePostProcess.vert", "FramePostProcess.frag");
+    //TODO - find another place for this!
 }
 
 } // namespace War3

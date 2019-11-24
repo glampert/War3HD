@@ -262,11 +262,37 @@ struct WGLSWAP
 
 // ========================================================
 
+static bool g_RendererIsStarted = false;
+
+GLPROXY_EXTERN HGLRC GLPROXY_DECL wglCreateContext(HDC hdc)
+{
+    static GLProxy::TGLFunc<HGLRC, HDC> TGLFUNC_DECL(wglCreateContext);
+    return TGLFUNC_CALL(wglCreateContext, hdc);
+}
+
+GLPROXY_EXTERN BOOL GLPROXY_DECL wglDeleteContext(HGLRC hglrc)
+{
+    static GLProxy::TGLFunc<BOOL, HGLRC> TGLFUNC_DECL(wglDeleteContext);
+
+    // Application shutdown or window minimized
+    War3::Renderer::getInstance().stop();
+    g_RendererIsStarted = false;
+
+    return TGLFUNC_CALL(wglDeleteContext, hglrc);
+}
+
 GLPROXY_EXTERN void GLPROXY_DECL glClear(GLbitfield mask)
 {
     static GLProxy::TGLFunc<void, GLbitfield> TGLFUNC_DECL(glClear);
 
-    // glClear is a good place to start an intercepted render frame.
+    // Can't do this from wglCreateContext for some reason...
+    if (!g_RendererIsStarted)
+    {
+        War3::Renderer::getInstance().start();
+        g_RendererIsStarted = true;
+    }
+
+    // glClear is probably a good place to start an intercepted render frame.
     War3::Renderer::getInstance().beginFrame();
 
     TGLFUNC_CALL(glClear, mask);
@@ -280,32 +306,6 @@ GLPROXY_EXTERN BOOL GLPROXY_DECL wglSwapLayerBuffers(HDC hdc, UINT flags)
     War3::Renderer::getInstance().endFrame();
 
     return TGLFUNC_CALL(wglSwapLayerBuffers, hdc, flags);
-}
-
-GLPROXY_EXTERN BOOL GLPROXY_DECL wglDeleteContext(HGLRC hglrc)
-{
-    static GLProxy::TGLFunc<BOOL, HGLRC> TGLFUNC_DECL(wglDeleteContext);
-
-    // When the application kills the OpenGL context it is a good time
-    // to cleanup or own mess. This is not strictly necessary though, since
-    // the game is shutting down, but we might as well play nice and cleanup.
-    War3::Renderer::getInstance().stop();
-
-    return TGLFUNC_CALL(wglDeleteContext, hglrc);
-}
-
-GLPROXY_EXTERN HGLRC GLPROXY_DECL wglCreateContext(HDC hdc)
-{
-    static GLProxy::TGLFunc<HGLRC, HDC> TGLFUNC_DECL(wglCreateContext);
-
-    // Back from minimizing/maximizing the window, set debug size.
-    if (War3::Window::getHandle())
-    {
-        War3::Window::setWindowed(War3::Window::kDefaultDebugSize.width,
-                                  War3::Window::kDefaultDebugSize.height);
-    }
-
-    return TGLFUNC_CALL(wglCreateContext, hdc);
 }
 
 // wglGetProcAddress is a special case. We also want to log
