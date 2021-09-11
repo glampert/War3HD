@@ -1,9 +1,6 @@
 
 # War3HD
 
-This project aimed at providing a new custom renderer for the Warcraft 3 game,
-by intercepting and replacing the OpenGL DLL used by it.
+This project aimed at providing a new custom renderer for the Blizzard classic *Warcraft 3* game by intercepting and replacing the OpenGL DLL used by its renderer.
 
-The project is at a very early stage and at the moment on hold.
-I have no plans of resuming it in the near future.
-
+Basic DLL injection and an ImGui debug UI with simple custom shaders has been implemented but nothing more advanced was done. Now that *Warcraft 3 Reforged* has been released this project is no longer being maintained and I have no itention of continuing work on it.
