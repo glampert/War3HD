@@ -53,6 +53,7 @@ namespace GLProxy
     FUNC_PTR(glDeleteShader)                     \
     FUNC_PTR(glDetachShader)                     \
     FUNC_PTR(glLinkProgram)                      \
+    FUNC_PTR(glProgramParameteri)                \
     FUNC_PTR(glShaderSource)                     \
     FUNC_PTR(glUseProgram)                       \
     FUNC_PTR(glGetProgramInfoLog)                \

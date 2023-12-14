@@ -6,6 +6,7 @@
 // ============================================================================
 
 #include "Common.hpp"
+#include "DebugUI.hpp"
 
 #define NOMINMAX
 #define VC_EXTRALEAN
@@ -20,9 +21,10 @@ namespace War3
 // LogStream:
 // ========================================================
 
-LogStream::LogStream(const char* filename, const bool debugWindow)
+LogStream::LogStream(const char* filename, const bool debugWindow, const std::function<void(const char*)>& logListener)
     : m_file{ nullptr }
     , m_useDebugWindow{ debugWindow }
+    , m_logListener{ logListener }
 {
     fopen_s(&m_file, filename, "wt");
     if (m_file == nullptr)
@@ -51,6 +53,11 @@ void LogStream::write(const char c)
         const char dbgStr[] = { c, '\0' };
         OutputDebugStringA(dbgStr);
     }
+    if (m_logListener)
+    {
+        const char logStr[] = { c, '\0' };
+        m_logListener(logStr);
+    }
 }
 
 void LogStream::write(const char* str)
@@ -64,6 +71,10 @@ void LogStream::write(const char* str)
         if (m_useDebugWindow)
         {
             OutputDebugStringA(str);
+        }
+        if (m_logListener)
+        {
+            m_logListener(str);
         }
     }
 }
@@ -130,13 +141,13 @@ void fatalError(WAR3_PRINTF_LIKE const char* fmt, ...)
     #endif // WAR3_WITH_LOG
 
     MessageBoxA(nullptr, message, "War3HD Fatal Error", MB_OK | MB_ICONERROR);
-    std::exit(EXIT_FAILURE);
+    WAR3_DEBUGBREAK();
 }
 
 #if WAR3_WITH_LOG
 LogStream& getLogStream()
 {
-    static LogStream s_TheLog{ "War3HD.log" };
+    static LogStream s_TheLog{ "War3HD.log", /*debugWindow=*/true, /*logListener=*/&DebugUI::logListenerCallback };
     return s_TheLog;
 }
 
@@ -278,6 +289,45 @@ void* getSelfModuleHandle()
                        (LPCSTR)&getSelfModuleHandle,
                        &selfHMod);
     return reinterpret_cast<void*>(selfHMod);
+}
+
+void createDirectories(const std::string& path)
+{
+    if (!CreateDirectoryA(path.c_str(), nullptr))
+    {
+        const auto pathLen = path.length() + 1;
+        auto* pathCopy = reinterpret_cast<char*>(alloca(pathLen));
+        std::memcpy(pathCopy, path.c_str(), pathLen);
+
+        BOOL success = true;
+        for (auto* str = pathCopy; *str != '\0' && success; ++str)
+        {
+            const char c = *str;
+            if (c == '/' || c == '\\')
+            {
+                *str = '\0';
+                success = CreateDirectoryA(pathCopy, nullptr);
+                *str = c;
+            }
+        }
+
+        if (!success)
+        {
+            const DWORD error = GetLastError();
+            switch (error)
+            {
+            case ERROR_ALREADY_EXISTS:
+                warn("createDirectories - ERROR_ALREADY_EXISTS: '%s'", path.c_str());
+                break;
+            case ERROR_PATH_NOT_FOUND:
+                warn("createDirectories - ERROR_PATH_NOT_FOUND: '%s'", path.c_str());
+                break;
+            default:
+                warn("createDirectories - Cannot create directory: '%s'", path.c_str());
+                break;
+            }
+        }
+    }
 }
 
 // ========================================================

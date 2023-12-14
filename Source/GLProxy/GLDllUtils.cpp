@@ -5,9 +5,8 @@
 // Brief:  Real OpenGL DLL loader and other DLL interception/stats utils.
 // ============================================================================
 
-#include "GLProxy/GLDllUtils.hpp"
+#include "GLDllUtils.hpp"
 #include <algorithm>
-#include <vector>
 
 namespace GLProxy
 {
@@ -119,6 +118,34 @@ void* OpenGLDll::getRealGLFunc(const char* funcName) // static
 
 GLFuncBase* g_RealGLFunctions = nullptr;
 
+std::vector<const GLFuncBase*> getSortedGLFunctions()
+{
+    std::vector<const GLFuncBase*> sortedFuncs;
+    sortedFuncs.reserve(64);
+
+    // Gather all function pointers first so we can sort them by call count.
+    for (const GLFuncBase* func = g_RealGLFunctions; func != nullptr; func = func->next)
+    {
+        sortedFuncs.push_back(func);
+    }
+
+    // Higher call counts first. If same call count then sort alphabetically by name.
+    std::sort(std::begin(sortedFuncs), std::end(sortedFuncs),
+        [](const GLFuncBase* a, const GLFuncBase* b) -> bool
+        {
+            if (a->callCount == b->callCount)
+            {
+                return std::strcmp(a->name, b->name) < 0;
+            }
+            else
+            {
+                return a->callCount > b->callCount;
+            }
+        });
+
+    return sortedFuncs;
+}
+
 // ========================================================
 // AutoReport:
 // ========================================================
@@ -138,37 +165,17 @@ AutoReport::~AutoReport()
 
 void AutoReport::writeReport() // static
 {
-    // Gather all function pointers first so we can sort them by call count.
-    std::vector<const GLFuncBase*> sortedFuncs;
-    for (const GLFuncBase* func = g_RealGLFunctions; func != nullptr; func = func->next)
-    {
-        sortedFuncs.push_back(func);
-    }
-
-    // Higher call counts first. If same call count then sort alphabetically by name.
-    std::sort(std::begin(sortedFuncs), std::end(sortedFuncs),
-              [](const GLFuncBase* a, const GLFuncBase* b) -> bool
-              {
-                  if (a->callCount == b->callCount)
-                  {
-                      return std::strcmp(a->name, b->name) < 0;
-                  }
-                  else
-                  {
-                      return a->callCount > b->callCount;
-                  }
-              });
-
     GLPROXY_LOG("--------------------------------------------------------");
     GLPROXY_LOG("  Function call counts (war3.exe/game.dll only)");
     GLPROXY_LOG("--------------------------------------------------------\n");
 
+    const auto sortedFuncs = getSortedGLFunctions();
     for (const GLFuncBase* func : sortedFuncs)
     {
         GLPROXY_LOG("%s %s", War3::numToString(func->callCount).c_str(), func->name);
     }
 
-    GLPROXY_LOG("\n%zu GL functions were called by the application.", sortedFuncs.size());
+    GLPROXY_LOG("\n%zu GL functions were called by the application.\n", sortedFuncs.size());
     GLProxy::getProxyDllLogStream().flush();
 }
 

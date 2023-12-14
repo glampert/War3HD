@@ -1,17 +1,4 @@
 
-//
-// FIXME these constants should come from the application when compiling the shader!!!
-//
-// FIXME should find a way to prevent FXAA from applying to UI elements...
-//
-#define FXAA_GLSL_130 1
-
-// 3 is the default
-#define FXAA_PRESET 5
-
-//#define FXAA_DEBUG_PASSTHROUGH 1
-//#define FXAA_DEBUG_HORZVERT 1
-
 /*============================================================================
 
                                     FXAA

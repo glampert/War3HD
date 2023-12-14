@@ -109,6 +109,7 @@ Image::PixelFormat pixelFormatFromGLEnum(unsigned internal, unsigned format, uns
 class ImageManager final
 {
 public:
+    ~ImageManager();
     ImageManager(const ImageManager&) = delete;
     ImageManager& operator=(const ImageManager&) = delete;
 

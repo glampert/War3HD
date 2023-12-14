@@ -14,10 +14,6 @@ namespace War3
 
 Renderer::Renderer()
     : glDll{ GLProxy::OpenGLDll::getInstance() }
-    , imageMgr{ ImageManager::getInstance() }
-    , shaderProgMgr{ ShaderProgramManager::getInstance() }
-    , framebufferMgr{ FramebufferManager::getInstance() }
-    , isEnabled{ false }
 {
     info("---- War3::Renderer startup ----");
     Window::installDebugHooks();
@@ -43,7 +39,9 @@ Renderer& Renderer::getInstance()
 // One-time initialization/setup when we switch on the custom renderer.
 void Renderer::start()
 {
-    info("---- War3::Renderer::start() ----");
+    info("=--=--=--=--=--=--=--=--=--=--=--=--=");
+    info("------ War3::Renderer::start() ------");
+    info("=--=--=--=--=--=--=--=--=--=--=--=--=");
 
     isEnabled = true;
     GLProxy::loadInternalGLFunctions();
@@ -69,10 +67,17 @@ void Renderer::start()
 // Cleanup when the custom renderer is disabled and we switch back to the original mode.
 void Renderer::stop()
 {
-    info("---- War3::Renderer::stop() ----");
+    info("=--=--=--=--=--=--=--=--=--=--=--=--=");
+    info("------ War3::Renderer::stop() -------");
+    info("=--=--=--=--=--=--=--=--=--=--=--=--=");
 
     isEnabled = false;
     DebugUI::stop();
+
+    // Recreate all singletons.
+    FramebufferManager::deleteInstance();
+    ShaderProgramManager::deleteInstance();
+    ImageManager::deleteInstance();
 
     // Make sure logs are done in case we quit after this.
     #if GLPROXY_WITH_LOG
@@ -92,7 +97,38 @@ void Renderer::beginFrame()
         return;
     }
 
-    // TODO
+    screenSize = Window::getScreenSize();
+
+    FramebufferManager::getInstance().onFrameStarted(screenSize);
+
+    if (DebugUI::enableDebugShader())
+    {
+        const auto& sp = ShaderProgramManager::getInstance().getShader<DebugShaderProgram>(ShaderProgramManager::kDebug);
+        sp.bind();
+
+        sp.setScreenSize(screenSize);
+
+        if (DebugUI::debugViewTexCoords)
+        {
+            sp.setDebugView(DebugShaderProgram::kDebugViewTexCoords);
+        }
+        else if (DebugUI::debugViewVertNormals)
+        {
+            sp.setDebugView(DebugShaderProgram::kDebugViewVertNormals);
+        }
+        else if (DebugUI::debugViewVertColors)
+        {
+            sp.setDebugView(DebugShaderProgram::kDebugViewVertColors);
+        }
+        else if (DebugUI::debugViewVertPositions)
+        {
+            sp.setDebugView(DebugShaderProgram::kDebugViewVertPositions);
+        }
+        else if (DebugUI::debugViewPolyOutlines)
+        {
+            sp.setDebugView(DebugShaderProgram::kDebugViewPolyOutlines);
+        }
+    }
 }
 
 // End rendering of a custom War3 frame.
@@ -103,9 +139,11 @@ void Renderer::endFrame()
         return;
     }
 
-    DebugUI::render();
+    ShaderProgram::bindNull();
 
-    // TODO
+    FramebufferManager::getInstance().onFrameEnded();
+
+    DebugUI::render(screenSize);
 }
 
 } // namespace War3

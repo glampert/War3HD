@@ -77,6 +77,7 @@ typedef void            (GLPROXY_DECL * pfn_glDeleteProgram)             (GLuint
 typedef void            (GLPROXY_DECL * pfn_glDeleteShader)              (GLuint shader);
 typedef void            (GLPROXY_DECL * pfn_glDetachShader)              (GLuint program, GLuint shader);
 typedef void            (GLPROXY_DECL * pfn_glLinkProgram)               (GLuint program);
+typedef void            (GLPROXY_DECL * pfn_glProgramParameteri)         (GLuint program, GLenum pname, GLint value);
 typedef void            (GLPROXY_DECL * pfn_glShaderSource)              (GLuint shader, GLsizei count, const GLchar * const * str, const GLint * length);
 typedef void            (GLPROXY_DECL * pfn_glUseProgram)                (GLuint program);
 typedef void            (GLPROXY_DECL * pfn_glGetProgramInfoLog)         (GLuint program, GLsizei bufSize, GLsizei * length, GLchar * infoLog);
@@ -148,7 +149,6 @@ typedef void            (GLPROXY_DECL * pfn_glBindVertexArray)           (GLuint
 typedef void            (GLPROXY_DECL * pfn_glGenBuffers)                (GLsizei n, GLuint* buffers);
 typedef void            (GLPROXY_DECL * pfn_glDeleteBuffers)             (GLsizei n, const GLuint* buffers);
 typedef void            (GLPROXY_DECL * pfn_glBindBuffer)                (GLenum target, GLuint buffer);
-typedef void            (GLPROXY_DECL * pfn_glBufferData)                (GLenum target, GLsizeiptr size, const void* data, GLenum usage);
 typedef void            (GLPROXY_DECL * pfn_glDrawElementsBaseVertex)    (GLenum mode, GLsizei count, GLenum type, const void *indices, GLint basevertex);
 typedef void            (GLPROXY_DECL * pfn_glClearColor)                (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 typedef void            (GLPROXY_DECL * pfn_glClear)                     (GLbitfield mask);
@@ -1302,6 +1302,10 @@ typedef void            (GLPROXY_DECL * pfn_glClear)                     (GLbitf
 #define GL_CURRENT_PROGRAM                0x8B8D
 #define GL_FRAGMENT_SHADER                0x8B30
 #define GL_VERTEX_SHADER                  0x8B31
+#define GL_GEOMETRY_SHADER                0x8DD9
+#define GL_GEOMETRY_VERTICES_OUT          0x8DDA
+#define GL_GEOMETRY_INPUT_TYPE            0x8DDB
+#define GL_GEOMETRY_OUTPUT_TYPE           0x8DDC
 
     /* Framebuffer attachment points */
 #define GL_MAX_COLOR_ATTACHMENTS          0x8CDF
@@ -1332,6 +1336,7 @@ typedef void            (GLPROXY_DECL * pfn_glClear)                     (GLbitf
 #define GL_FRAMEBUFFER_UNSUPPORTED                   0x8CDD
 #define GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE        0x8D56
 #define GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS      0x8DA8
+#define GL_DRAW_FRAMEBUFFER_BINDING                  0x8CA6
 
 #endif // __GL_H__
 #endif // __gl_h_

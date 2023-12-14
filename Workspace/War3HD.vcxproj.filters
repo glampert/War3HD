@@ -126,7 +126,7 @@
     <ClInclude Include="..\Source\Shaders\FXAA.h">
       <Filter>Source Files\Shaders</Filter>
     </ClInclude>
-    <ClInclude Include="..\Source\Shaders\HDR.h">
+    <ClInclude Include="..\Source\Shaders\PostProcessingFilters.h">
       <Filter>Source Files\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="..\Source\External\stb\stb_image_write.h">
@@ -182,17 +182,26 @@
     <None Include="..\Source\Shaders\FramePostProcess.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
-    <None Include="..\Source\Shaders\FramePostProcess.vert">
+    <None Include="..\Source\Shaders\FullScreenQuad.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
-    <None Include="..\Source\Shaders\Test.frag">
+    <None Include="..\Source\Shaders\Debug.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
-    <None Include="..\Source\Shaders\Test.vert">
+    <None Include="..\Source\Shaders\Debug.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
     <None Include="Makelink.bat">
       <Filter>Source Files\GLProxy</Filter>
+    </None>
+    <None Include="..\Source\Shaders\PresentFramebuffer.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="..\Source\Shaders\FXAA.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="..\Source\Shaders\Debug.geom">
+      <Filter>Source Files\Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>

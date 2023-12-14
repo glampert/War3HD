@@ -118,15 +118,17 @@ public:
 
     static void deleteInstance()
     {
+        Framebuffer::bindNull();
+
         delete sm_sharedInstance;
         sm_sharedInstance = nullptr;
     }
 
-    void onFrameStarted(int scrW, int scrH);
+    void onFrameStarted(const Size2D& screenSize);
     void onFrameEnded();
 
 private:
-    void presentColorBuffer();
+    void presentFrameBuffer();
     void drawFullscreenQuadrilateral();
 
     // Singleton instance:

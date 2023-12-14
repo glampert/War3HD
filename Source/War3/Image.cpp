@@ -5,7 +5,8 @@
 // Brief:  Texture/Image helper classes.
 // ============================================================================
 
-#include "War3/Image.hpp"
+#include "Image.hpp"
+#include "DebugUI.hpp"
 #include "GLProxy/GLExtensions.hpp"
 
 // STB Image Write (stbiw):
@@ -248,13 +249,22 @@ ImageManager::ImageManager()
     info("---- ImageManager startup ----");
 }
 
+ImageManager::~ImageManager()
+{
+    if (!m_images.empty() && DebugUI::dumpTexturesToFile)
+    {
+        saveAllImagesToFile();
+    }
+}
+
 void ImageManager::saveAllImagesToFile() const
 {
-    //FIXME have to mkdir!
-
-    const std::string baseDir{ "CapturedImages\\" }; //TODO probably place images and logs into a War3HD folder...
+    const std::string baseDir{ "CapturedImages\\" }; // TODO: probably place images and logs into a War3HD folder...
     std::string generatedFilename;
 
+    createDirectories(baseDir);
+
+    int numSaved = 0;
     for (const auto& img : m_images)
     {
         // Only save the first mipmap.
@@ -272,38 +282,40 @@ void ImageManager::saveAllImagesToFile() const
         generatedFilename += std::to_string(img.getHeight()) + ".png";
 
         img.savePng(generatedFilename);
+        ++numSaved;
     }
+
+    info("Saved %i textures to file.", numSaved);
 }
 
 void ImageManager::genTextures(int n, unsigned* indexes)
 {
     (void)n;
     (void)indexes;
-    //TODO
+    // TODO
 }
 
 void ImageManager::deleteTextures(int n, const unsigned* indexes)
 {
     (void)n;
     (void)indexes;
-    //TODO
+    // TODO
 }
 
 void ImageManager::bindTexture(unsigned target, unsigned index)
 {
     (void)target;
     (void)index;
-    //TODO
+    // TODO
 }
 
-//FIXME generate GL_ERRORS if params are bad???
 void ImageManager::texImage2D(unsigned target, int level, int internalformat,
                               int width, int height, int border, unsigned format,
                               unsigned type, const std::uint8_t* pixels)
 {
     if (border != 0)
     {
-        fatalError("Border not zero!"); // FIXME GL_ERROR instead???
+        fatalError("Border not zero!"); // TODO: should we generate a GL_ERROR instead???
     }
 
     const auto usage = GLUtil::targetUsageFromGLEnum(target);
@@ -329,7 +341,7 @@ void ImageManager::texSubImage2D(unsigned target, int level, int xOffset, int yO
     (void)format;
     (void)type;
     (void)pixels;
-    //TODO
+    // TODO
 }
 
 } // namespace War3

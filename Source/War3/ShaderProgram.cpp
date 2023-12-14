@@ -5,10 +5,17 @@
 // Brief:  Shader Program management helpers.
 // ============================================================================
 
-#include "War3/ShaderProgram.hpp"
+#include "ShaderProgram.hpp"
 #include "GLProxy/GLExtensions.hpp"
 #include <cstdio>  // For std::fopen/sscanf
 #include <cstring> // For std::strstr
+
+// Always use this version if this macro is defined.
+//
+// Some built-ins like gl_Vertex, gl_TexCoord, etc we use in the shaders
+// were deprecated and are no longer supported on newer OpenGL drivers.
+//
+#define WAR3_FORCE_GLSL_VERSION 130
 
 namespace War3
 {
@@ -38,7 +45,8 @@ ShaderProgram& ShaderProgram::operator=(ShaderProgram&& other) noexcept
     return *this;
 }
 
-ShaderProgram::ShaderProgram(TextBuffer&& vsSrcText, TextBuffer&& fsSrcText, const std::string& directives)
+ShaderProgram::ShaderProgram(TextBuffer&& vsSrcText, TextBuffer&& fsSrcText, TextBuffer&& gsSrcText,
+                             const std::string& directives, const std::initializer_list<std::string>& optDebugFileNames)
     : m_handle{ 0 }
     , m_linkedOk{ false }
 {
@@ -54,6 +62,7 @@ ShaderProgram::ShaderProgram(TextBuffer&& vsSrcText, TextBuffer&& fsSrcText, con
         warn("Null Fragment Shader source!");
         return;
     }
+    // gsSrcText is optional.
 
     //
     // Shader #include resolution:
@@ -61,11 +70,15 @@ ShaderProgram::ShaderProgram(TextBuffer&& vsSrcText, TextBuffer&& fsSrcText, con
 
     std::string vsIncludedText;
     std::string fsIncludedText;
+    std::string gsIncludedText;
+
     std::vector<std::string> vsIncludes;
     std::vector<std::string> fsIncludes;
+    std::vector<std::string> gsIncludes;
 
     const char* vsSrcTextPtr = findShaderIncludes(vsSrcText.get(), vsIncludes);
     const char* fsSrcTextPtr = findShaderIncludes(fsSrcText.get(), fsIncludes);
+    const char* gsSrcTextPtr = findShaderIncludes(gsSrcText.get(), gsIncludes);
 
     for (const auto& incFile : vsIncludes)
     {
@@ -79,6 +92,13 @@ ShaderProgram::ShaderProgram(TextBuffer&& vsSrcText, TextBuffer&& fsSrcText, con
         info("Loading Fragment Shader include \"%s\"...", incFile.c_str());
         auto fileContents = loadShaderFile(incFile);
         fsIncludedText += (fileContents != nullptr ? fileContents.get() : "");
+    }
+
+    for (const auto& incFile : gsIncludes)
+    {
+        info("Loading Geometry Shader include \"%s\"...", incFile.c_str());
+        auto fileContents = loadShaderFile(incFile);
+        gsIncludedText += (fileContents != nullptr ? fileContents.get() : "");
     }
 
     //
@@ -102,6 +122,19 @@ ShaderProgram::ShaderProgram(TextBuffer&& vsSrcText, TextBuffer&& fsSrcText, con
         return;
     }
 
+    // Optional Geometry shader:
+    GLuint glGsHandle = 0;
+    if (gsSrcText != nullptr)
+    {
+        glGsHandle = GLProxy::glCreateShader(GL_GEOMETRY_SHADER);
+        if (glGsHandle == 0)
+        {
+            warn("Failed to allocate a new GL Geometry Shader handle! Possibly out-of-memory!");
+            GLPROXY_CHECK_GL_ERRORS();
+            return;
+        }
+    }
+
     // Vertex shader:
     const char* vsSrcStrings[]{ getGlslVersionDirective().c_str(), directives.c_str(), vsIncludedText.c_str(), vsSrcTextPtr };
     GLProxy::glShaderSource(glVsHandle, arrayLength(vsSrcStrings), vsSrcStrings, nullptr);
@@ -114,9 +147,26 @@ ShaderProgram::ShaderProgram(TextBuffer&& vsSrcText, TextBuffer&& fsSrcText, con
     GLProxy::glCompileShader(glFsHandle);
     GLProxy::glAttachShader(glProgHandle, glFsHandle);
 
+    // Optional Geometry shader:
+    if (glGsHandle != 0)
+    {
+        const char* gsSrcStrings[]{ getGlslVersionDirective().c_str(), directives.c_str(), gsIncludedText.c_str(), gsSrcTextPtr };
+        GLProxy::glShaderSource(glGsHandle, arrayLength(gsSrcStrings), gsSrcStrings, nullptr);
+        GLProxy::glCompileShader(glGsHandle);
+        GLProxy::glAttachShader(glProgHandle, glGsHandle);
+
+        // These are the GL defaults.
+        GLProxy::glProgramParameteri(glProgHandle, GL_GEOMETRY_INPUT_TYPE, GL_TRIANGLES);
+        GLProxy::glProgramParameteri(glProgHandle, GL_GEOMETRY_OUTPUT_TYPE, GL_TRIANGLE_STRIP);
+
+        // Necessary, otherwise the Geometry shader behaves weirdly...
+        GLProxy::glProgramParameteri(glProgHandle, GL_GEOMETRY_VERTICES_OUT, 3);
+        GLProxy::checkGLErrors(__FUNCTION__, __FILE__, __LINE__, /*crash=*/true);
+    }
+
     // Link the Shader Program then check and print the info logs, if any.
     GLProxy::glLinkProgram(glProgHandle);
-    m_linkedOk = checkShaderInfoLogs(glProgHandle, glVsHandle, glFsHandle);
+    m_linkedOk = checkShaderInfoLogs(glProgHandle, glVsHandle, glFsHandle, glGsHandle, optDebugFileNames);
 
     // After a program is linked the shader objects can be safely detached and deleted.
     // Also recommended to save on the memory that would be wasted by keeping the shaders alive.
@@ -124,6 +174,12 @@ ShaderProgram::ShaderProgram(TextBuffer&& vsSrcText, TextBuffer&& fsSrcText, con
     GLProxy::glDetachShader(glProgHandle, glFsHandle);
     GLProxy::glDeleteShader(glVsHandle);
     GLProxy::glDeleteShader(glFsHandle);
+
+    if (glGsHandle != 0)
+    {
+        GLProxy::glDetachShader(glProgHandle, glGsHandle);
+        GLProxy::glDeleteShader(glGsHandle);
+    }
 
     // OpenGL likes to defer GPU resource allocation to the first time
     // an object is bound to the current state. Binding it now should
@@ -136,8 +192,8 @@ ShaderProgram::ShaderProgram(TextBuffer&& vsSrcText, TextBuffer&& fsSrcText, con
     m_handle = glProgHandle;
 }
 
-ShaderProgram::ShaderProgram(const std::string& vsFile, const std::string& fsFile, const std::string& directives)
-    : ShaderProgram{ loadShaderFile(vsFile), loadShaderFile(fsFile), directives }
+ShaderProgram::ShaderProgram(const std::string& vsFile, const std::string& fsFile, const std::string& gsFile, const std::string& directives)
+    : ShaderProgram{ loadShaderFile(vsFile), loadShaderFile(fsFile), loadShaderFile(gsFile), directives, { vsFile, fsFile, gsFile } }
 {
     if (m_handle != 0)
     {
@@ -180,7 +236,6 @@ ShaderProgram::TextBuffer ShaderProgram::loadShaderFile(const std::string& filen
 {
     if (filename.empty())
     {
-        warn("Empty filename in ShaderProgram::loadShaderFile()!");
         return nullptr;
     }
 
@@ -224,6 +279,11 @@ const char* ShaderProgram::findShaderIncludes(const char* srcText, std::vector<s
     // should be the fist things in a shader file, besides comments.
     //
 
+    if (srcText == nullptr || *srcText == '\0')
+    {
+        return "";
+    }
+
     std::string includeFile;
     const char* incPtr = std::strstr(srcText, "#include");
 
@@ -257,8 +317,20 @@ const char* ShaderProgram::findShaderIncludes(const char* srcText, std::vector<s
     return srcText;
 }
 
-bool ShaderProgram::checkShaderInfoLogs(const unsigned progHandle, const unsigned vsHandle, const unsigned fsHandle) noexcept
+bool ShaderProgram::checkShaderInfoLogs(const unsigned progHandle, const unsigned vsHandle, const unsigned fsHandle, const unsigned gsHandle,
+                                        const std::initializer_list<std::string>& optDebugFileNames) noexcept
 {
+    const char* vsFileName = "";
+    const char* fsFileName = "";
+    const char* gsFileName = "";
+
+    if (optDebugFileNames.size() >= 3)
+    {
+        vsFileName = optDebugFileNames.begin()[0].c_str();
+        fsFileName = optDebugFileNames.begin()[1].c_str();
+        gsFileName = optDebugFileNames.begin()[2].c_str();
+    }
+
     constexpr int kInfoLogMaxChars = 2048;
 
     GLsizei charsWritten;
@@ -269,7 +341,9 @@ bool ShaderProgram::checkShaderInfoLogs(const unsigned progHandle, const unsigne
     GLProxy::glGetProgramInfoLog(progHandle, kInfoLogMaxChars - 1, &charsWritten, infoLogBuf);
     if (charsWritten > 0)
     {
+        warn("");
         warn("------ GL PROGRAM INFO LOG ----------");
+        warn("[ %s, %s, %s ]", vsFileName, fsFileName, gsFileName);
         warn("%s", infoLogBuf);
     }
 
@@ -279,6 +353,7 @@ bool ShaderProgram::checkShaderInfoLogs(const unsigned progHandle, const unsigne
     if (charsWritten > 0)
     {
         warn("------ GL VERT SHADER INFO LOG ------");
+        warn("[ %s ]", vsFileName);
         warn("%s", infoLogBuf);
     }
 
@@ -288,7 +363,22 @@ bool ShaderProgram::checkShaderInfoLogs(const unsigned progHandle, const unsigne
     if (charsWritten > 0)
     {
         warn("------ GL FRAG SHADER INFO LOG ------");
+        warn("[ %s ]", fsFileName);
         warn("%s", infoLogBuf);
+    }
+
+    // Geometry shader is optional.
+    if (gsHandle != 0)
+    {
+        charsWritten = 0;
+        std::memset(infoLogBuf, 0, sizeof(infoLogBuf));
+        GLProxy::glGetShaderInfoLog(gsHandle, kInfoLogMaxChars - 1, &charsWritten, infoLogBuf);
+        if (charsWritten > 0)
+        {
+            warn("------ GL GEOM SHADER INFO LOG ------");
+            warn("[ %s ]", gsFileName);
+            warn("%s", infoLogBuf);
+        }  
     }
 
     GLint linkStatus = GL_FALSE;
@@ -296,8 +386,7 @@ bool ShaderProgram::checkShaderInfoLogs(const unsigned progHandle, const unsigne
 
     if (linkStatus == GL_FALSE)
     {
-        warn("Failed to link GL shader program!");
-        return false;
+        fatalError("Failed to link GL shader program: %s, %s, %s", vsFileName, fsFileName, gsFileName);
     }
 
     return true;
@@ -331,23 +420,34 @@ const std::string& ShaderProgram::getGlslVersionDirective()
     // This ensures we use the best version available.
     if (sm_glslVersionDirective.empty())
     {
-        int slMajor = 0;
-        int slMinor = 0;
         int versionNum = 0;
-        auto versionStr = reinterpret_cast<const char*>(GLProxy::glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-        if (sscanf_s(versionStr, "%d.%d", &slMajor, &slMinor) == 2)
+        #if !defined(WAR3_FORCE_GLSL_VERSION)
         {
-            versionNum = (slMajor * 100) + slMinor;
+            int slMajor = 0;
+            int slMinor = 0;
+            auto versionStr = reinterpret_cast<const char*>(GLProxy::glGetString(GL_SHADING_LANGUAGE_VERSION));
+
+            if (sscanf_s(versionStr, "%d.%d", &slMajor, &slMinor) == 2)
+            {
+                versionNum = (slMajor * 100) + slMinor;
+            }
+            else
+            {
+                // Fall back to the lowest acceptable version.
+                // Assume #version 150 -> OpenGL 3.2
+                versionNum = 150;
+            }
         }
-        else
+        #else // WAR3_FORCE_GLSL_VERSION
         {
-            // Fall back to the lowest acceptable version.
-            // Assume #version 150 -> OpenGL 3.2
-            versionNum = 150;
+            versionNum = WAR3_FORCE_GLSL_VERSION;
         }
+        #endif // WAR3_FORCE_GLSL_VERSION
 
         sm_glslVersionDirective = "#version " + std::to_string(versionNum) + "\n";
+
+        info("GLSL version: %s", sm_glslVersionDirective.c_str());
     }
 
     return sm_glslVersionDirective;
@@ -512,6 +612,67 @@ void ShaderProgram::setUniformMat4(const int loc, const float* m) const noexcept
     GLProxy::glUniformMatrix4fv(loc, 1, GL_FALSE, m);
 }
 
+void ShaderProgram::setProgramParameter(const unsigned paramId, const int value) const noexcept
+{
+    if (!isBound() || !isValid())
+    {
+        warn("setProgramParameter: Program not current!");
+        return;
+    }
+    GLProxy::glProgramParameteri(m_handle, paramId, value);
+}
+
+void ShaderProgram::setGeometryInputType(const int type) const noexcept
+{
+    setProgramParameter(GL_GEOMETRY_INPUT_TYPE, type);
+    GLPROXY_CHECK_GL_ERRORS();
+}
+
+void ShaderProgram::setGeometryOutputType(const int type) const noexcept
+{
+    setProgramParameter(GL_GEOMETRY_OUTPUT_TYPE, type);
+    GLPROXY_CHECK_GL_ERRORS();
+}
+
+void ShaderProgram::setGeometryOutputVertexCount(const unsigned count) const noexcept
+{
+    setProgramParameter(GL_GEOMETRY_VERTICES_OUT, count);
+    GLPROXY_CHECK_GL_ERRORS();
+}
+
+// ========================================================
+// class ShaderProgramFactory:
+// ========================================================
+
+struct ShaderProgramManager::ShaderProgramFactory final
+{
+    ShaderProgramManager& m_spm;
+
+    template<typename T>
+    void CreateShaderVertFragGeom(const ShaderId shaderId, const char* const vertexShaderFile, const char* const fragmentShaderFile, const char* const geometryShaderFile)
+    {
+        static_assert(std::is_base_of_v<ShaderProgram, T>, "Class must inherit from ShaderProgram.");
+
+        m_spm.m_shaders[shaderId] = std::make_unique<T>(vertexShaderFile, fragmentShaderFile, geometryShaderFile);
+        if (!m_spm.m_shaders[shaderId]->isValid())
+        {
+            fatalError("Failed to create shader: '%s' - '%s' - '%s'", vertexShaderFile, fragmentShaderFile, geometryShaderFile);
+        }
+    }
+
+    template<typename T>
+    void CreateShaderPostProcess(const ShaderId shaderId, const char* const fragmentShaderFile)
+    {
+        static_assert(std::is_base_of_v<PostProcessShaderProgram, T>, "Class must inherit from PostProcessShaderProgram.");
+
+        m_spm.m_shaders[shaderId] = std::make_unique<T>(fragmentShaderFile);
+        if (!m_spm.m_shaders[shaderId]->isValid())
+        {
+            fatalError("Failed to create post-process shader: '%s'", fragmentShaderFile);
+        }
+    }
+};
+
 // ========================================================
 // class ShaderProgramManager:
 // ========================================================
@@ -522,9 +683,14 @@ ShaderProgramManager::ShaderProgramManager()
 {
     info("---- ShaderProgramManager startup ----");
 
-    // Warm up all the shaders we're going to need:
-    //m_shaders[kFramePostProcess] = std::make_unique<ShaderProgram>("FramePostProcess.vert", "FramePostProcess.frag");
-    //TODO - find another place for this!
+    // Load all the shaders we're going to need:
+
+    ShaderProgramFactory factory{ *this };
+
+    factory.CreateShaderPostProcess<PostProcessShaderProgram>(kPresentFramebuffer, "PresentFramebuffer.frag");
+    factory.CreateShaderPostProcess<PostProcessShaderProgram>(kFramePostProcess, "FramePostProcess.frag");
+    factory.CreateShaderPostProcess<FXAADebugShaderProgram>(kFXAADebug, "FXAA.frag");
+    factory.CreateShaderVertFragGeom<DebugShaderProgram>(kDebug, "Debug.vert", "Debug.frag", "Debug.geom");
 }
 
 } // namespace War3

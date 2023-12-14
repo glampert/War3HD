@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34202.233
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "War3HD_DLL", "War3HD.vcxproj", "{307C0FE7-03A6-4A70-ACFB-1FF2DB186F5A}"
 EndProject
@@ -11,7 +11,7 @@ Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "war3", "..\..\..\Warcraft-I
 	ProjectSection(DebuggerProjectSystem) = preProject
 		PortSupplier = 00000000-0000-0000-0000-000000000000
 		Executable = C:\Users\Lampert\Documents\Warcraft-III-RoC\war3.exe
-		RemoteMachine = MACBOOK-LAMPERT
+		RemoteMachine = MY_PC
 		StartingDirectory = C:\Users\Lampert\Documents\Warcraft-III-RoC
 		Arguments = -opengl
 		Environment = Default
@@ -19,6 +19,7 @@ Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "war3", "..\..\..\Warcraft-I
 		UseLegacyDebugEngines = No
 		LaunchSQLEngine = No
 		AttachLaunchAction = No
+		IORedirection = Auto
 	EndProjectSection
 EndProject
 Global
@@ -47,5 +48,8 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{E2048FD4-C532-48E4-9CBC-6BECAB0A5F0E} = {47786733-28AC-48B6-8428-C5CC38EC1AD3}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {67FBE2BF-DE73-40B3-91E9-BF2617CC5333}
 	EndGlobalSection
 EndGlobal

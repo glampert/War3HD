@@ -15,6 +15,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <functional>
 
 // Microsoft's own flavor of format string checking.
 // This sadly won't even be used by the compiler, only the static analyzer cares about it,
@@ -98,7 +99,7 @@ public:
     LogStream(const LogStream&) = delete;
     LogStream& operator=(const LogStream&) = delete;
 
-    explicit LogStream(const char* filename, bool debugWindow = true);
+    explicit LogStream(const char* filename, bool debugWindow = true, const std::function<void(const char*)>& logListener = {});
     ~LogStream();
 
     void write(char c);
@@ -110,6 +111,7 @@ public:
 private:
     FILE* m_file;
     const bool m_useDebugWindow;
+    const std::function<void(const char*)> m_logListener;
 };
 
 // ========================================================
@@ -149,6 +151,7 @@ std::string getTimeString();
 std::string lastWinErrorAsString();
 std::string getRealGLLibPath();
 void* getSelfModuleHandle(); // -> HMODULE
+void createDirectories(const std::string& path);
 
 // ========================================================
 

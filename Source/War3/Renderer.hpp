@@ -24,11 +24,9 @@ class Renderer final
     Renderer& operator=(const Renderer&) = delete;
 
 public:
-    GLProxy::OpenGLDll&   glDll;
-    ImageManager&         imageMgr;
-    ShaderProgramManager& shaderProgMgr;
-    FramebufferManager&   framebufferMgr;
-    bool                  isEnabled;
+    GLProxy::OpenGLDll& glDll;
+    Size2D screenSize{ 0,0 };
+    bool isEnabled{ false };
 
 public:
     static Renderer& getInstance();

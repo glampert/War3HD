@@ -47,10 +47,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Source\GLProxy\Opengl32.def" />
+    <None Include="..\Source\Shaders\Debug.geom" />
     <None Include="..\Source\Shaders\FramePostProcess.frag" />
-    <None Include="..\Source\Shaders\FramePostProcess.vert" />
-    <None Include="..\Source\Shaders\Test.frag" />
-    <None Include="..\Source\Shaders\Test.vert" />
+    <None Include="..\Source\Shaders\FullScreenQuad.vert" />
+    <None Include="..\Source\Shaders\FXAA.frag" />
+    <None Include="..\Source\Shaders\PresentFramebuffer.frag" />
+    <None Include="..\Source\Shaders\Debug.frag" />
+    <None Include="..\Source\Shaders\Debug.vert" />
     <None Include="Makelink.bat" />
   </ItemGroup>
   <ItemGroup>
@@ -69,7 +72,7 @@
     <ClInclude Include="..\Source\GLProxy\GLEnums.hpp" />
     <ClInclude Include="..\Source\GLProxy\GLExtensions.hpp" />
     <ClInclude Include="..\Source\Shaders\FXAA.h" />
-    <ClInclude Include="..\Source\Shaders\HDR.h" />
+    <ClInclude Include="..\Source\Shaders\PostProcessingFilters.h" />
     <ClInclude Include="..\Source\War3\Common.hpp" />
     <ClInclude Include="..\Source\War3\DebugUI.hpp" />
     <ClInclude Include="..\Source\War3\Framebuffer.hpp" />
@@ -82,33 +85,33 @@
     <ProjectGuid>{307C0FE7-03A6-4A70-ACFB-1FF2DB186F5A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>War3HD</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>War3HD_DLL</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>

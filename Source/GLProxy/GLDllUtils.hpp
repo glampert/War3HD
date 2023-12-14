@@ -8,6 +8,7 @@
 // ============================================================================
 
 #include "GLProxy/GLExtensions.hpp"
+#include <vector>
 
 namespace GLProxy
 {
@@ -55,6 +56,8 @@ struct GLFuncBase
 
 // Linked list of TGLFuncs, pointing to the actual OpenGL DLL methods.
 extern GLFuncBase* g_RealGLFunctions;
+
+std::vector<const GLFuncBase*> getSortedGLFunctions();
 
 // Each function requires a different signature.
 // These are always declared as static instances.

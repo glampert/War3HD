@@ -5,8 +5,8 @@
 // Brief:  Pointers to extended functions in the real opengl32.dll
 // ============================================================================
 
-#include "GLProxy/GLExtensions.hpp"
-#include "GLProxy/GLDllUtils.hpp"
+#include "GLExtensions.hpp"
+#include "GLDllUtils.hpp"
 
 namespace GLProxy
 {
@@ -38,8 +38,8 @@ namespace GLProxy
 
 void loadInternalGLFunctions()
 {
-    static bool s_functionsLoaded = false;
-    if (s_functionsLoaded)
+    static bool s_FunctionsLoaded = false;
+    if (s_FunctionsLoaded)
     {
         return;
     }
@@ -53,7 +53,7 @@ void loadInternalGLFunctions()
     GLPROXY_CHECK_GL_ERRORS();
 
     GLPROXY_LOG("\n**** loadInternalGLFunctions() - DONE ****\n");
-    s_functionsLoaded = true;
+    s_FunctionsLoaded = true;
 }
 
 #undef GET_GL_FUNC
@@ -124,7 +124,7 @@ void fatalError(WAR3_PRINTF_LIKE const char* fmt, ...)
     #endif // GLPROXY_WITH_LOG
 
     MessageBoxA(nullptr, message, "GLProxy Fatal Error", MB_OK | MB_ICONERROR);
-    std::exit(EXIT_FAILURE);
+    WAR3_DEBUGBREAK();
 }
 
 #if GLPROXY_WITH_LOG

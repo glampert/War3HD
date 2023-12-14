@@ -6,11 +6,12 @@
 //         This file is the public DLL interface of our "fake" opengl32.dll.
 // ============================================================================
 
-#include "GLProxy/GLExtensions.hpp"
-#include "GLProxy/GLDllUtils.hpp"
+#include "GLExtensions.hpp"
+#include "GLDllUtils.hpp"
 
 #include "War3/Renderer.hpp"
 #include "War3/Window.hpp"
+#include "War3/DebugUI.hpp"
 
 // ========================================================
 // DllMain:
@@ -687,7 +688,21 @@ GLFUNC_7(glTexSubImage1D, GLenum, target, GLint, level, GLint, xoffset, GLsizei,
 GLFUNC_8(glCopyTexImage2D, GLenum, target, GLint, level, GLenum, internalFormat, GLint, x, GLint, y, GLsizei, width, GLsizei, height, GLint, border);
 GLFUNC_8(glCopyTexSubImage2D, GLenum, target, GLint, level, GLint, xoffset, GLint, yoffset, GLint, x, GLint, y, GLsizei, width, GLsizei, height);
 GLFUNC_8(glTexImage1D, GLenum, target, GLint, level, GLint, internalformat, GLsizei, width, GLint, border, GLenum, format, GLenum, type, const void*, pixels);
-GLFUNC_9(glTexImage2D, GLenum, target, GLint, level, GLint, internalformat, GLsizei, width, GLsizei, height, GLint, border, GLenum, format, GLenum, type, const void*, pixels);
+
+// Intercept all texture allocations so we can save them to file:
+// GLFUNC_9(glTexImage2D, GLenum, target, GLint, level, GLint, internalformat, GLsizei, width, GLsizei, height, GLint, border, GLenum, format, GLenum, type, const void*, pixels);
+GLPROXY_EXTERN void GLPROXY_DECL glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void* pixels)
+{
+    static GLProxy::TGLFunc<void, GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const void*> TGLFUNC_DECL(glTexImage2D);
+
+    if (g_RendererIsStarted && War3::DebugUI::dumpTexturesToFile)
+    {
+        War3::ImageManager::getInstance().texImage2D(target, level, internalformat, width, height, border, format, type, reinterpret_cast<const std::uint8_t*>(pixels));
+    }
+
+    TGLFUNC_CALL(glTexImage2D, target, level, internalformat, width, height, border, format, type, pixels);
+}
+
 GLFUNC_9(glTexSubImage2D, GLenum, target, GLint, level, GLint, xoffset, GLint, yoffset, GLsizei, width, GLsizei, height, GLenum, format, GLenum, type, const void*, pixels);
 GLFUNC_10(glMap2d, GLenum, target, GLdouble, u1, GLdouble, u2, GLint, ustride, GLint, uorder, GLdouble, v1, GLdouble, v2, GLint, vstride, GLint, vorder, const GLdouble*, points);
 GLFUNC_10(glMap2f, GLenum, target, GLfloat, u1, GLfloat, u2, GLint, ustride, GLint, uorder, GLfloat, v1, GLfloat, v2, GLint, vstride, GLint, vorder, const GLfloat*, points);

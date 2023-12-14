@@ -5,8 +5,9 @@
 // Brief:  Framebuffer capture and management.
 // ============================================================================
 
-#include "War3/Framebuffer.hpp"
-#include "War3/ShaderProgram.hpp"
+#include "Framebuffer.hpp"
+#include "ShaderProgram.hpp"
+#include "DebugUI.hpp"
 #include "GLProxy/GLExtensions.hpp"
 
 namespace War3
@@ -345,18 +346,18 @@ FramebufferManager::FramebufferManager()
     info("---- FramebufferManager startup ----");
 }
 
-void FramebufferManager::onFrameStarted(const int scrW, const int scrH)
+void FramebufferManager::onFrameStarted(const Size2D& screenSize)
 {
     // First run or screen resolution changed? Recreate the FB.
-    if (m_framebuffer == nullptr || m_framebuffer->getWidth() != scrW || m_framebuffer->getHeight() != scrH)
+    if (m_framebuffer == nullptr || m_framebuffer->getWidth() != screenSize.width || m_framebuffer->getHeight() != screenSize.height)
     {
         // Make sure the current is freed first to
         // avoid having both in memory at the same time.
         m_framebuffer = nullptr;
 
-        if (scrW > 0 && scrH > 0)
+        if (screenSize.width > 0 && screenSize.height > 0)
         {
-            m_framebuffer = std::make_unique<Framebuffer>(scrW, scrH, true,
+            m_framebuffer = std::make_unique<Framebuffer>(screenSize.width, screenSize.height, true,
                                                           Image::Filter::kBilinear,
                                                           Image::Filter::kNearest);
         }
@@ -378,22 +379,56 @@ void FramebufferManager::onFrameEnded()
     }
 
     Framebuffer::bindNull();
-    presentColorBuffer();
+
+    const int displayWidth  = m_framebuffer->getWidth();
+    const int displayHeight = m_framebuffer->getHeight();
+    GLProxy::glViewport(0, 0, displayWidth, displayHeight);
+
+    presentFrameBuffer();
 }
 
-void FramebufferManager::presentColorBuffer()
+void FramebufferManager::presentFrameBuffer()
 {
-    //TODO TEMP testing
-    const auto& sp = ShaderProgramManager::getInstance().getShader(ShaderProgramManager::kFramePostProcess);
+    const bool enablePostProcessing = DebugUI::enablePostProcessing();
+
+    ShaderProgramManager::ShaderId shaderId = ShaderProgramManager::kPresentFramebuffer;
+    if (enablePostProcessing)
+    {
+        if (DebugUI::fxaaDebug)
+        {
+            // Visualize the FXAA edge detection filter without applying the actual AA.
+            shaderId = ShaderProgramManager::kFXAADebug;
+        }
+        else
+        {
+            shaderId = ShaderProgramManager::kFramePostProcess;
+        }
+    }
+
+    const auto& sp = ShaderProgramManager::getInstance().getShader<PostProcessShaderProgram>(shaderId);
     sp.bind();
 
-    sp.setUniform1i(sp.getUniformLocation("u_ColorRenderTarget"), 0);
+    if (enablePostProcessing)
+    {
+        int flags = PostProcessShaderProgram::kPostProcessNone;
+
+        // FIXME: Have to find a way of preventing FXAA from being applied to the game UI.
+        if (DebugUI::enableFxaa)  { flags |= PostProcessShaderProgram::kPostProcessFXAA;  }
+        if (DebugUI::enableHDR)   { flags |= PostProcessShaderProgram::kPostProcessHDR;   }
+        if (DebugUI::enableBloom) { flags |= PostProcessShaderProgram::kPostProcessBloom; }
+        if (DebugUI::enableNoise) { flags |= PostProcessShaderProgram::kPostProcessNoise; }
+
+        sp.setPostProcessFlags(PostProcessShaderProgram::PostProcessFlags(flags));
+        sp.setScreenSize({ m_framebuffer->getWidth(), m_framebuffer->getHeight() });
+    }
+
+    sp.setColorRenderTargetSlot(0);
     m_framebuffer->bindRenderTargetTexture(Framebuffer::kColorBuffer, 0);
 
     drawFullscreenQuadrilateral();
     GLPROXY_CHECK_GL_ERRORS();
-    ShaderProgram::bindNull();
 
+    ShaderProgram::bindNull();
     GLUtil::bindGLTexture(GL_TEXTURE_2D, 0, 0);
 }
 
