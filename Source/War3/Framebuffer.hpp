@@ -7,8 +7,8 @@
 // Brief:  Framebuffer capture and management.
 // ============================================================================
 
-#include "War3/Common.hpp"
-#include "War3/Image.hpp"
+#include "Common.hpp"
+#include "Image.hpp"
 #include <array>
 
 namespace War3

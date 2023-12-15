@@ -7,7 +7,7 @@
 // Brief:  Shader Program management helpers.
 // ============================================================================
 
-#include "War3/Common.hpp"
+#include "Common.hpp"
 #include <array>
 #include <vector>
 

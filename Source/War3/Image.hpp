@@ -7,7 +7,7 @@
 // Brief:  Texture/Image helper classes.
 // ============================================================================
 
-#include "War3/Common.hpp"
+#include "Common.hpp"
 #include <vector>
 
 namespace War3
