@@ -1,5 +1,5 @@
 
-# War3HD
+# Warcraft 3 Custom Renderer
 
 This project aimed at providing a new custom renderer for the Blizzard classic *Warcraft 3* game by intercepting and replacing the OpenGL DLL used by its renderer.
 
